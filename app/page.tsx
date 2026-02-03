@@ -65,7 +65,7 @@ export default function Home() {
                 <li>✓ Email support</li>
               </ul>
               <button 
-                onClick={() => handleCheckout('price_starter')}
+                onClick={() => handleCheckout('price_1SwtCbBfSldKMuDjM3p0kyG4')}
                 className="w-full bg-purple-600 hover:bg-purple-700 text-white py-3 rounded-lg font-semibold transition"
               >
                 Start Free Trial
@@ -90,7 +90,7 @@ export default function Home() {
                 <li>✓ Priority support</li>
               </ul>
               <button 
-                onClick={() => handleCheckout('price_pro')}
+                onClick={() => handleCheckout('price_1SwtCbBfSldKMuDjDmRHqErh')}
                 className="w-full bg-purple-600 hover:bg-purple-700 text-white py-3 rounded-lg font-semibold transition"
               >
                 Start Free Trial
@@ -112,7 +112,7 @@ export default function Home() {
                 <li>✓ Dedicated support</li>
               </ul>
               <button 
-                onClick={() => handleCheckout('price_team')}
+                onClick={() => handleCheckout('price_1SwtCcBfSldKMuDjEKBqQ6lH')}
                 className="w-full bg-purple-600 hover:bg-purple-700 text-white py-3 rounded-lg font-semibold transition"
               >
                 Start Free Trial
