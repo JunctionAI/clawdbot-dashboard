@@ -58,9 +58,13 @@ export const authOptions: NextAuthOptions = {
     },
     
     async redirect({ url, baseUrl }) {
-      // Redirect to dashboard after sign in
+      // If callback URL is specified and valid, use it
       if (url.startsWith(baseUrl)) {
         return url;
+      }
+      // If coming from setup, go back to setup
+      if (url.includes('/setup')) {
+        return `${baseUrl}/setup`;
       }
       // Default to dashboard
       return `${baseUrl}/dashboard`;

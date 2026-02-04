@@ -1,300 +1,365 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { signIn, useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 
-type Step = 'welcome' | 'model' | 'channel' | 'connect' | 'done';
+// ============================================================================
+// ALLY BOT SETUP - Managed onboarding (we provide the bot!)
+// ============================================================================
+
+const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://clawdbot-saas-backend-production.up.railway.app';
+
+type SetupStep = 'signin' | 'creating' | 'connect' | 'done';
+
+interface WorkspaceData {
+  workspaceId: string;
+  linkCode: string;
+  telegramLinked: boolean;
+}
 
 export default function SetupPage() {
-  const [step, setStep] = useState<Step>('welcome');
-  const [selectedModel, setSelectedModel] = useState('claude-sonnet');
-  const [linkCode, setLinkCode] = useState('');
-  const [loading, setLoading] = useState(false);
+  const { data: session, status } = useSession();
+  const router = useRouter();
+  
+  const [step, setStep] = useState<SetupStep>('signin');
+  const [workspace, setWorkspace] = useState<WorkspaceData | null>(null);
+  const [error, setError] = useState('');
+  const [isPolling, setIsPolling] = useState(false);
 
-  // Generate link code on mount
-  useState(() => {
-    setLinkCode(`ALLY-${Math.random().toString(36).substring(2, 8).toUpperCase()}`);
-  });
+  // Create workspace when user signs in
+  const createWorkspace = useCallback(async () => {
+    if (!session?.user?.email) return;
+    
+    setStep('creating');
+    setError('');
+    
+    try {
+      const response = await fetch(`${BACKEND_URL}/api/ally/create-workspace`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: session.user.email,
+          name: session.user.name,
+          googleId: (session.user as any).id,
+        }),
+      });
+      
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to create workspace');
+      }
+      
+      setWorkspace({
+        workspaceId: data.workspaceId,
+        linkCode: data.linkCode,
+        telegramLinked: data.telegramLinked,
+      });
+      
+      if (data.telegramLinked) {
+        setStep('done');
+      } else {
+        setStep('connect');
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to create workspace');
+      setStep('signin');
+    }
+  }, [session]);
 
-  const models = [
-    { id: 'claude-sonnet', name: 'Claude Sonnet 4', desc: 'Fast & smart (recommended)', icon: '⚡' },
-    { id: 'claude-opus', name: 'Claude Opus 4.5', desc: 'Most capable', icon: '🧠', badge: 'Pro' },
-    { id: 'gpt-4', name: 'GPT-4o', desc: 'OpenAI alternative', icon: '🤖', soon: true },
-  ];
+  // Auto-create workspace when authenticated
+  useEffect(() => {
+    if (status === 'authenticated' && step === 'signin' && !workspace) {
+      createWorkspace();
+    }
+  }, [status, step, workspace, createWorkspace]);
 
-  const channels = [
-    { id: 'telegram', name: 'Telegram', icon: '📱', available: true },
-    { id: 'discord', name: 'Discord', icon: '🎮', soon: true },
-    { id: 'whatsapp', name: 'WhatsApp', icon: '💬', soon: true },
-    { id: 'web', name: 'Web Chat', icon: '🌐', available: true },
-  ];
+  // Poll for Telegram link status
+  useEffect(() => {
+    if (step !== 'connect' || !workspace || isPolling) return;
+    
+    setIsPolling(true);
+    
+    const checkLinkStatus = async () => {
+      try {
+        const response = await fetch(
+          `${BACKEND_URL}/api/ally/link-status?workspaceId=${workspace.workspaceId}`
+        );
+        const data = await response.json();
+        
+        if (data.linked) {
+          setStep('done');
+          return true;
+        }
+      } catch (err) {
+        console.error('Link status check failed:', err);
+      }
+      return false;
+    };
+    
+    // Check immediately
+    checkLinkStatus();
+    
+    // Then poll every 3 seconds
+    const interval = setInterval(async () => {
+      const linked = await checkLinkStatus();
+      if (linked) {
+        clearInterval(interval);
+        setIsPolling(false);
+      }
+    }, 3000);
+    
+    return () => {
+      clearInterval(interval);
+      setIsPolling(false);
+    };
+  }, [step, workspace, isPolling]);
+
+  const handleGoogleSignIn = () => {
+    signIn('google', { callbackUrl: '/setup' });
+  };
+
+  const telegramLink = workspace?.linkCode 
+    ? `https://t.me/AllyBot?start=${workspace.linkCode}`
+    : '#';
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900/20 to-gray-900 flex items-center justify-center p-4">
-      <div className="max-w-xl w-full">
+    <div className="min-h-screen bg-gray-950 text-white">
+      {/* Background gradient */}
+      <div className="fixed inset-0 bg-gradient-to-br from-violet-950/50 via-gray-950 to-fuchsia-950/30 pointer-events-none" />
+      
+      {/* Floating orbs */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-40 -right-40 w-[500px] h-[500px] rounded-full bg-violet-500/10 blur-[100px]" />
+        <div className="absolute -bottom-40 -left-40 w-[500px] h-[500px] rounded-full bg-fuchsia-500/10 blur-[100px]" />
+      </div>
+
+      <div className="relative z-10 max-w-lg mx-auto px-4 py-12">
         {/* Logo */}
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-8"
+          className="flex flex-col items-center justify-center gap-4 mb-12"
         >
-          <div className="inline-flex items-center gap-3 mb-4">
-            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-purple-500 to-purple-700 flex items-center justify-center text-2xl">
-              🤖
-            </div>
-            <span className="text-2xl font-bold text-white">Ally</span>
+          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center shadow-lg shadow-violet-500/30">
+            <span className="text-3xl">🤖</span>
+          </div>
+          <div className="text-center">
+            <h1 className="text-3xl font-bold">Meet Ally</h1>
+            <p className="text-white/60 mt-1">Your personal AI assistant on Telegram</p>
           </div>
         </motion.div>
 
-        {/* Card */}
-        <motion.div 
-          layout
-          className="bg-gray-800/50 backdrop-blur-xl rounded-3xl border border-gray-700/50 p-8 shadow-2xl"
-        >
-          <AnimatePresence mode="wait">
-            {/* Welcome Step */}
-            {step === 'welcome' && (
-              <motion.div
-                key="welcome"
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                className="text-center"
-              >
-                <h1 className="text-3xl font-bold text-white mb-3">
-                  Deploy your AI assistant
-                </h1>
-                <p className="text-gray-400 mb-8">
-                  Get your own AI that actually does things. Ready in under 1 minute.
+        {/* Progress indicator */}
+        <div className="flex items-center justify-center gap-2 mb-8">
+          {['signin', 'creating', 'connect', 'done'].map((s, i) => (
+            <div
+              key={s}
+              className={`
+                w-2 h-2 rounded-full transition-all duration-300
+                ${step === s ? 'w-8 bg-violet-500' : 
+                  ['signin', 'creating', 'connect', 'done'].indexOf(step) > i 
+                    ? 'bg-violet-500' : 'bg-white/20'}
+              `}
+            />
+          ))}
+        </div>
+
+        {/* Step Content */}
+        <AnimatePresence mode="wait">
+          {/* Step 1: Sign In */}
+          {step === 'signin' && (
+            <motion.div
+              key="signin"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-8"
+            >
+              <div className="text-center mb-8">
+                <span className="text-4xl mb-4 block">👋</span>
+                <h2 className="text-2xl font-bold mb-2">Let&apos;s get you started</h2>
+                <p className="text-white/60">
+                  Sign in to create your account and connect to Ally.
                 </p>
+              </div>
+
+              {error && (
+                <div className="p-3 rounded-lg bg-red-500/20 border border-red-500/30 text-red-400 text-sm mb-4">
+                  {error}
+                </div>
+              )}
+
+              {status === 'loading' ? (
+                <div className="text-center py-4">
+                  <div className="w-8 h-8 border-2 border-violet-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+                  <p className="text-white/60">Checking authentication...</p>
+                </div>
+              ) : (
+                <button
+                  onClick={handleGoogleSignIn}
+                  className="w-full p-4 rounded-xl bg-white text-gray-900 font-semibold flex items-center justify-center gap-3 hover:bg-gray-100 transition-colors"
+                >
+                  <svg className="w-5 h-5" viewBox="0 0 24 24">
+                    <path
+                      fill="#4285F4"
+                      d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                    />
+                    <path
+                      fill="#34A853"
+                      d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                    />
+                    <path
+                      fill="#FBBC05"
+                      d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+                    />
+                    <path
+                      fill="#EA4335"
+                      d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+                    />
+                  </svg>
+                  Continue with Google
+                </button>
+              )}
+
+              <p className="text-center text-white/40 text-sm mt-6">
+                Takes about 30 seconds to set up
+              </p>
+            </motion.div>
+          )}
+
+          {/* Step 2: Creating workspace */}
+          {step === 'creating' && (
+            <motion.div
+              key="creating"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-8"
+            >
+              <div className="text-center">
+                <div className="w-16 h-16 mx-auto mb-4 relative">
+                  <div className="absolute inset-0 border-4 border-violet-500/30 rounded-full" />
+                  <div className="absolute inset-0 border-4 border-violet-500 border-t-transparent rounded-full animate-spin" />
+                </div>
+                <h2 className="text-2xl font-bold mb-2">Setting up your account</h2>
+                <p className="text-white/60">Just a moment...</p>
+              </div>
+            </motion.div>
+          )}
+
+          {/* Step 3: Connect Telegram */}
+          {step === 'connect' && workspace && (
+            <motion.div
+              key="connect"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-8"
+            >
+              <div className="text-center mb-6">
+                <span className="text-4xl mb-4 block">📱</span>
+                <h2 className="text-2xl font-bold mb-2">Connect your Telegram</h2>
+                <p className="text-white/60">
+                  Click the button below to message @AllyBot and link your account.
+                </p>
+              </div>
+
+              {/* Link Code Display */}
+              <div className="bg-violet-500/10 rounded-xl p-4 mb-6 text-center">
+                <p className="text-sm text-violet-300 mb-2">Your unique code</p>
+                <p className="text-3xl font-mono font-bold tracking-widest">{workspace.linkCode}</p>
+              </div>
+
+              {/* Connect Button */}
+              <a
+                href={telegramLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full p-4 rounded-xl bg-[#0088cc] text-white font-semibold flex items-center justify-center gap-3 hover:bg-[#0077b5] transition-colors mb-4"
+              >
+                <svg className="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.74-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .38z"/>
+                </svg>
+                Open Telegram and Connect
+              </a>
+
+              {/* Manual instructions */}
+              <div className="text-center text-white/50 text-sm space-y-1">
+                <p>Or manually:</p>
+                <p>1. Open Telegram and search for <span className="text-violet-400">@AllyBot</span></p>
+                <p>2. Send: <code className="bg-white/10 px-2 py-0.5 rounded">/start {workspace.linkCode}</code></p>
+              </div>
+
+              {/* Waiting indicator */}
+              <div className="mt-6 pt-6 border-t border-white/10 flex items-center justify-center gap-2 text-white/60">
+                <div className="w-2 h-2 bg-violet-500 rounded-full animate-pulse" />
+                <span className="text-sm">Waiting for you to connect...</span>
+              </div>
+            </motion.div>
+          )}
+
+          {/* Step 4: Done! */}
+          {step === 'done' && (
+            <motion.div
+              key="done"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-8"
+            >
+              <div className="text-center">
+                <motion.div
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ type: 'spring', delay: 0.2 }}
+                  className="w-20 h-20 mx-auto mb-6 rounded-full bg-gradient-to-br from-emerald-400 to-cyan-400 flex items-center justify-center"
+                >
+                  <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                  </svg>
+                </motion.div>
                 
-                <button
-                  onClick={() => setStep('model')}
-                  className="w-full py-4 bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-500 hover:to-purple-600 text-white font-semibold rounded-xl transition-all duration-300 hover:shadow-lg hover:shadow-purple-500/30"
-                >
-                  Get Started →
-                </button>
-
-                <p className="text-gray-500 text-sm mt-6">
-                  Already have an account?{' '}
-                  <a href="/login" className="text-purple-400 hover:text-purple-300">Sign in</a>
-                </p>
-              </motion.div>
-            )}
-
-            {/* Model Selection */}
-            {step === 'model' && (
-              <motion.div
-                key="model"
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-              >
-                <h2 className="text-2xl font-bold text-white mb-2">Choose your AI model</h2>
-                <p className="text-gray-400 mb-6">You can change this later</p>
-
-                <div className="space-y-3 mb-8">
-                  {models.map((model) => (
-                    <button
-                      key={model.id}
-                      onClick={() => !model.soon && setSelectedModel(model.id)}
-                      disabled={model.soon}
-                      className={`w-full p-4 rounded-xl border transition-all duration-200 flex items-center gap-4 ${
-                        model.soon 
-                          ? 'border-gray-700/50 bg-gray-800/30 opacity-50 cursor-not-allowed'
-                          : selectedModel === model.id
-                            ? 'border-purple-500 bg-purple-500/10'
-                            : 'border-gray-700/50 bg-gray-800/30 hover:border-gray-600'
-                      }`}
-                    >
-                      <span className="text-2xl">{model.icon}</span>
-                      <div className="flex-1 text-left">
-                        <div className="flex items-center gap-2">
-                          <span className="text-white font-medium">{model.name}</span>
-                          {model.badge && (
-                            <span className="px-2 py-0.5 bg-purple-500/20 text-purple-300 text-xs rounded-full">
-                              {model.badge}
-                            </span>
-                          )}
-                          {model.soon && (
-                            <span className="px-2 py-0.5 bg-gray-700 text-gray-400 text-xs rounded-full">
-                              Coming soon
-                            </span>
-                          )}
-                        </div>
-                        <span className="text-gray-400 text-sm">{model.desc}</span>
-                      </div>
-                      {!model.soon && selectedModel === model.id && (
-                        <svg className="w-5 h-5 text-purple-400" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                        </svg>
-                      )}
-                    </button>
-                  ))}
-                </div>
-
-                <div className="flex gap-3">
-                  <button
-                    onClick={() => setStep('welcome')}
-                    className="px-6 py-3 text-gray-400 hover:text-white transition-colors"
-                  >
-                    ← Back
-                  </button>
-                  <button
-                    onClick={() => setStep('channel')}
-                    className="flex-1 py-3 bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-500 hover:to-purple-600 text-white font-semibold rounded-xl transition-all"
-                  >
-                    Continue →
-                  </button>
-                </div>
-              </motion.div>
-            )}
-
-            {/* Channel Selection */}
-            {step === 'channel' && (
-              <motion.div
-                key="channel"
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-              >
-                <h2 className="text-2xl font-bold text-white mb-2">Connect your channel</h2>
-                <p className="text-gray-400 mb-6">Where do you want to chat with Ally?</p>
-
-                <div className="grid grid-cols-2 gap-3 mb-8">
-                  {channels.map((channel) => (
-                    <button
-                      key={channel.id}
-                      onClick={() => channel.available && setStep('connect')}
-                      disabled={channel.soon}
-                      className={`p-4 rounded-xl border transition-all duration-200 ${
-                        channel.soon 
-                          ? 'border-gray-700/50 bg-gray-800/30 opacity-50 cursor-not-allowed'
-                          : 'border-gray-700/50 bg-gray-800/30 hover:border-purple-500 hover:bg-purple-500/10'
-                      }`}
-                    >
-                      <span className="text-3xl block mb-2">{channel.icon}</span>
-                      <span className="text-white font-medium block">{channel.name}</span>
-                      {channel.soon && (
-                        <span className="text-gray-500 text-xs">Coming soon</span>
-                      )}
-                    </button>
-                  ))}
-                </div>
-
-                <button
-                  onClick={() => setStep('model')}
-                  className="w-full py-3 text-gray-400 hover:text-white transition-colors"
-                >
-                  ← Back
-                </button>
-              </motion.div>
-            )}
-
-            {/* Connect Step */}
-            {step === 'connect' && (
-              <motion.div
-                key="connect"
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-              >
-                <div className="flex items-center gap-3 mb-6">
-                  <span className="text-3xl">📱</span>
-                  <h2 className="text-2xl font-bold text-white">Connect Telegram</h2>
-                </div>
-
-                <div className="bg-gray-900/50 rounded-xl p-6 mb-6">
-                  <ol className="space-y-4 text-gray-300">
-                    <li className="flex gap-3">
-                      <span className="flex-shrink-0 w-6 h-6 rounded-full bg-purple-500/20 text-purple-300 text-sm flex items-center justify-center">1</span>
-                      <span>Open Telegram and search for <strong className="text-white">@AllyAIBot</strong></span>
-                    </li>
-                    <li className="flex gap-3">
-                      <span className="flex-shrink-0 w-6 h-6 rounded-full bg-purple-500/20 text-purple-300 text-sm flex items-center justify-center">2</span>
-                      <span>Start a chat and send this code:</span>
-                    </li>
-                  </ol>
-
-                  <div className="mt-4 p-4 bg-gray-800 rounded-lg border border-gray-700 flex items-center justify-between">
-                    <code className="text-xl font-mono text-purple-300">{linkCode}</code>
-                    <button 
-                      onClick={() => navigator.clipboard.writeText(linkCode)}
-                      className="p-2 hover:bg-gray-700 rounded-lg transition-colors"
-                    >
-                      <svg className="w-5 h-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                      </svg>
-                    </button>
-                  </div>
-
-                  <p className="text-gray-500 text-sm mt-4">
-                    Or click: <a href={`https://t.me/AllyAIBot?start=${linkCode}`} target="_blank" className="text-purple-400 hover:text-purple-300">Open @AllyAIBot →</a>
-                  </p>
-                </div>
-
-                <div className="flex gap-3">
-                  <button
-                    onClick={() => setStep('channel')}
-                    className="px-6 py-3 text-gray-400 hover:text-white transition-colors"
-                  >
-                    ← Back
-                  </button>
-                  <button
-                    onClick={() => setStep('done')}
-                    className="flex-1 py-3 bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-500 hover:to-purple-600 text-white font-semibold rounded-xl transition-all"
-                  >
-                    I've connected →
-                  </button>
-                </div>
-              </motion.div>
-            )}
-
-            {/* Done Step */}
-            {step === 'done' && (
-              <motion.div
-                key="done"
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                className="text-center"
-              >
-                <div className="text-6xl mb-4">🎉</div>
-                <h2 className="text-2xl font-bold text-white mb-2">You're all set!</h2>
-                <p className="text-gray-400 mb-8">
-                  Ally is ready. Start chatting on Telegram or use the web interface.
+                <h2 className="text-2xl font-bold mb-2">You&apos;re all set! 🎉</h2>
+                <p className="text-white/60 mb-8">
+                  Ally is ready to chat with you on Telegram.
                 </p>
 
                 <div className="space-y-3">
                   <a
-                    href="https://t.me/AllyAIBot"
+                    href="https://t.me/AllyBot"
                     target="_blank"
-                    className="block w-full py-4 bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-500 hover:to-purple-600 text-white font-semibold rounded-xl transition-all"
+                    rel="noopener noreferrer"
+                    className="w-full p-4 rounded-xl bg-gradient-to-r from-violet-500 to-fuchsia-500 text-white font-semibold flex items-center justify-center gap-2 hover:shadow-lg hover:shadow-violet-500/30 transition-all"
                   >
-                    Open Telegram →
+                    <span className="text-xl">💬</span>
+                    Start chatting with Ally
                   </a>
-                  <a
-                    href="/chat"
-                    className="block w-full py-4 border border-gray-700 hover:border-gray-600 text-white font-semibold rounded-xl transition-all"
+                  
+                  <button
+                    onClick={() => router.push('/dashboard')}
+                    className="w-full p-4 rounded-xl bg-white/10 text-white font-semibold flex items-center justify-center gap-2 hover:bg-white/20 transition-all"
                   >
-                    Use Web Chat
-                  </a>
+                    <span className="text-xl">📊</span>
+                    Go to Dashboard
+                  </button>
                 </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </motion.div>
 
-        {/* Progress dots */}
-        <div className="flex justify-center gap-2 mt-6">
-          {['welcome', 'model', 'channel', 'connect', 'done'].map((s, i) => (
-            <div
-              key={s}
-              className={`w-2 h-2 rounded-full transition-all ${
-                s === step ? 'bg-purple-500 w-6' : 'bg-gray-700'
-              }`}
-            />
-          ))}
-        </div>
+                <div className="mt-8 p-4 rounded-xl bg-violet-500/10 border border-violet-500/20">
+                  <p className="text-sm text-violet-300">
+                    💡 <strong>Pro tip:</strong> Just start messaging Ally naturally. Ask questions, get help with tasks, or just have a conversation!
+                  </p>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Footer */}
+        <p className="text-center text-white/30 text-sm mt-8">
+          By continuing, you agree to our Terms of Service and Privacy Policy
+        </p>
       </div>
     </div>
   );
