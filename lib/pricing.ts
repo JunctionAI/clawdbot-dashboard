@@ -61,7 +61,7 @@ export const PRICING_TIERS: PricingTier[] = [
     description: 'Your AI that actually does things',
     skillsIncluded: 15,
     messagesPerMonth: 'unlimited',
-    priceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_PERSONAL,
+    priceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_PERSONAL || 'price_1Sx1rhBfSldKMuDj23HEtKwS',
     features: [
       'Unlimited messages',
       '15 skills included',
@@ -81,7 +81,7 @@ export const PRICING_TIERS: PricingTier[] = [
     messagesPerMonth: 'unlimited',
     popular: true,
     badge: 'Most Popular',
-    priceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_PLUS,
+    priceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_PLUS || 'price_1Sx1riBfSldKMuDjVcuXZHfE',
     features: [
       'Everything in Personal',
       'Unlimited skills',
@@ -102,7 +102,7 @@ export const PRICING_TIERS: PricingTier[] = [
     messagesPerMonth: 'unlimited',
     highlighted: true,
     badge: 'Best Value',
-    priceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_PRO,
+    priceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_PRO || 'price_1Sx1rjBfSldKMuDjgYJJBBK9',
     features: [
       'Everything in Plus',
       'API access',
@@ -122,7 +122,7 @@ export const PRICING_TIERS: PricingTier[] = [
     skillsIncluded: 15,
     messagesPerMonth: 'unlimited',
     badge: 'Great for Families',
-    priceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_FAMILY,
+    priceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_FAMILY || 'price_1Sx1rjBfSldKMuDjz6W740TQ',
     features: [
       'Up to 5 family members',
       '15 skills per member',
