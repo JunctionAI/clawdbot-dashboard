@@ -829,7 +829,7 @@ const HeroSection = () => {
                   </div>
                   <div className="flex-1 flex justify-center">
                     <div className="px-4 py-1 rounded-lg bg-white/10 text-white/60 text-sm">
-                      app.Clawdbot.io/dashboard
+                      app.clawdbot.ai/chat
                     </div>
                   </div>
                 </div>
@@ -838,9 +838,9 @@ const HeroSection = () => {
                 <div className="p-6 space-y-4">
                   <div className="grid grid-cols-3 gap-4">
                     {[
-                      { label: 'Total Revenue', value: '$2.4M', change: '+24%' },
-                      { label: 'Active Users', value: '48.2K', change: '+18%' },
-                      { label: 'Conversion', value: '24.8%', change: '+12%' },
+                      { label: 'Emails Processed', value: '1,247', change: '+18%' },
+                      { label: 'Tasks Completed', value: '89', change: '+24%' },
+                      { label: 'Time Saved', value: '12.5h', change: '+32%' },
                     ].map((stat, i) => (
                       <motion.div
                         key={i}
@@ -1326,7 +1326,7 @@ const Footer = () => {
               <span className="text-xl font-bold text-white">Clawdbot</span>
             </div>
             <p className="text-white/60 mb-6 max-w-xs">
-              The all-in-one platform for modern teams to build, launch, and scale products faster.
+              Your AI assistant that remembers everything. Manages email, calendar, tasks, and more — across every session.
             </p>
             <div className="flex gap-4">
               {['Twitter', 'GitHub', 'LinkedIn', 'Discord'].map((social) => (

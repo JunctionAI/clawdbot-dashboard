@@ -206,18 +206,11 @@ function ToastItem({ toast, onDismiss }: { toast: Toast; onDismiss: () => void }
   );
 }
 
-// Quick toast functions for convenience
-export function toast(options: Omit<Toast, 'id'>) {
-  // This is a placeholder - the actual implementation would need access to context
-  // Use the useToast hook in components instead
-  console.warn('Use useToast() hook to show toasts');
-}
-
-toast.success = (title: string, message?: string) =>
-  toast({ type: 'success', title, message });
-toast.error = (title: string, message?: string) =>
-  toast({ type: 'error', title, message });
-toast.warning = (title: string, message?: string) =>
-  toast({ type: 'warning', title, message });
-toast.info = (title: string, message?: string) =>
-  toast({ type: 'info', title, message });
+// BUG-006 fix: Removed non-functional toast helper functions
+// Use the useToast() hook in components instead:
+//
+// Example usage:
+//   const { addToast } = useToast();
+//   addToast({ type: 'success', title: 'Done!', message: 'Task completed' });
+//
+// Available types: 'success' | 'error' | 'warning' | 'info'
