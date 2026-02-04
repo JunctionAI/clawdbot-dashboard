@@ -10,8 +10,8 @@ interface CardProps {
 }
 
 export function Card({ children, className = '', hover = false, gradient = false, onClick, style }: CardProps) {
-  const baseClasses = "bg-gray-800/50 backdrop-blur-xl p-6 rounded-xl border border-gray-700/50 transition-all duration-300";
-  const hoverClasses = hover ? "hover:border-purple-500/50 hover:shadow-glow cursor-pointer hover:-translate-y-1" : "";
+  const baseClasses = "bg-gray-800/50 backdrop-blur-xl p-4 sm:p-6 rounded-xl border border-gray-700/50 transition-all duration-300";
+  const hoverClasses = hover ? "hover:border-purple-500/50 hover:shadow-glow cursor-pointer sm:hover:-translate-y-1 active:scale-[0.98]" : "";
   const gradientClasses = gradient ? "bg-gradient-to-br from-gray-800/50 to-gray-900/50" : "";
   
   return (

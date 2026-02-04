@@ -20,5 +20,21 @@ export {
   ProfileSkeleton 
 } from './Skeleton';
 
+// Action feedback components
+export { 
+  ActionFeedback,
+  InlineLoader,
+  SuccessCheck,
+  ErrorIndicator,
+  InlineError,
+  InlineSuccess,
+} from './ActionFeedback';
+
+// Form elements
+export { Toggle } from './Toggle';
+export { Input, TextArea, Select } from './Input';
+export { Avatar, AvatarUpload } from './Avatar';
+export { Tabs, TabsList, TabsTrigger, TabsContent, SettingsNav } from './Tabs';
+
 // Icons
 export * from './icons';

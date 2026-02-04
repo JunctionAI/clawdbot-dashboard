@@ -17,12 +17,13 @@ interface ModalProps {
   className?: string;
 }
 
+// Mobile-first: full width on small screens, then max-width on larger
 const sizeClasses = {
-  sm: 'max-w-sm',
-  md: 'max-w-md',
-  lg: 'max-w-lg',
-  xl: 'max-w-xl',
-  full: 'max-w-4xl',
+  sm: 'w-full sm:max-w-sm',
+  md: 'w-full sm:max-w-md',
+  lg: 'w-full sm:max-w-lg',
+  xl: 'w-full sm:max-w-xl',
+  full: 'w-full sm:max-w-4xl',
 };
 
 export function Modal({
@@ -99,7 +100,7 @@ export function Modal({
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
             transition={{ type: 'spring', stiffness: 400, damping: 30 }}
             className={`
-              fixed z-50 inset-0 flex items-center justify-center p-4
+              fixed z-50 inset-0 flex items-end sm:items-center justify-center p-0 sm:p-4
               overflow-y-auto
             `}
             onClick={(e) => {
@@ -116,7 +117,8 @@ export function Modal({
               className={`
                 relative w-full ${sizeClasses[size]}
                 bg-gray-900 border border-gray-700/50
-                rounded-xl shadow-2xl
+                rounded-t-xl sm:rounded-xl shadow-2xl
+                max-h-[90vh] sm:max-h-[85vh] overflow-y-auto
                 ${className}
               `}
             >

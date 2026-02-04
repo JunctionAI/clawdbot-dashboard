@@ -115,38 +115,38 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 animate-gradient bg-300%">
+    <div className="min-h-screen min-h-[100dvh] bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 animate-gradient bg-300%">
       {/* Animated gradient overlay */}
       <div className="fixed inset-0 bg-gradient-to-br from-purple-500/10 via-transparent to-blue-500/10 pointer-events-none"></div>
       
-      <div className="relative max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
+      <div className="relative max-w-7xl mx-auto p-3 sm:p-6 lg:p-8 safe-area-inset">
         {/* Header */}
-        <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8 animate-fade-in-down">
-          <div>
-            <h1 className="text-3xl sm:text-4xl font-bold text-white mb-2 bg-gradient-to-r from-white to-purple-200 bg-clip-text text-transparent">
+        <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 sm:mb-8 animate-fade-in-down">
+          <div className="w-full sm:w-auto">
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white mb-1 sm:mb-2 bg-gradient-to-r from-white to-purple-200 bg-clip-text text-transparent">
               Dashboard
             </h1>
-            <p className="text-gray-400 flex items-center gap-2">
-              <span>{customer.email}</span>
+            <p className="text-gray-400 flex flex-wrap items-center gap-2 text-sm sm:text-base">
+              <span className="truncate max-w-[200px] sm:max-w-none">{customer.email}</span>
               <Badge variant={statusColors[customer.status]} size="sm" pulse={customer.status === 'active'}>
                 {customer.status.toUpperCase()}
               </Badge>
             </p>
           </div>
-          <div className="flex gap-3">
-            <Button variant="ghost" size="sm">
+          <div className="flex gap-2 sm:gap-3 w-full sm:w-auto">
+            <Button variant="ghost" size="sm" className="flex-1 sm:flex-none">
               <SettingsIcon className="w-5 h-5" />
-              Settings
+              <span className="hidden xs:inline">Settings</span>
             </Button>
-            <Button variant="outline" size="sm">
+            <Button variant="outline" size="sm" className="flex-1 sm:flex-none">
               <CreditCardIcon className="w-5 h-5" />
-              Billing
+              <span className="hidden xs:inline">Billing</span>
             </Button>
           </div>
         </header>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6 mb-6 sm:mb-8">
           <StatCard
             icon={<MessageSquareIcon className="w-8 h-8" />}
             label="Messages Used"

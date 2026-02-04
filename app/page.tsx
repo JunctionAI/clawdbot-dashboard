@@ -612,67 +612,172 @@ const ScrollProgress = () => {
 // ----------------------------------------------------------------------------
 const Navigation = () => {
   const [scrolled, setScrolled] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 50);
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  // Close mobile menu on route change or escape
+  useEffect(() => {
+    const handleEsc = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setMobileMenuOpen(false);
+    };
+    if (mobileMenuOpen) {
+      document.body.style.overflow = 'hidden';
+      document.addEventListener('keydown', handleEsc);
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+      document.removeEventListener('keydown', handleEsc);
+    };
+  }, [mobileMenuOpen]);
+
+  const navItems = ['Features', 'Pricing', 'Testimonials', 'About'];
   
   return (
-    <motion.nav
-      initial={{ y: -100 }}
-      animate={{ y: 0 }}
-      className={`fixed top-0 left-0 right-0 z-40 transition-all duration-300 ${
-        scrolled ? 'bg-black/80 backdrop-blur-xl border-b border-white/10' : ''
-      }`}
-    >
-      <div className="max-w-7xl mx-auto px-6 py-4">
-        <div className="flex items-center justify-between">
-          {/* Logo */}
-          <motion.div
-            whileHover={{ scale: 1.05 }}
-            className="flex items-center gap-2"
-          >
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center">
-              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-              </svg>
-            </div>
-            <span className="text-xl font-bold text-white">Clawdbot</span>
-          </motion.div>
-          
-          {/* Nav Links */}
-          <div className="hidden md:flex items-center gap-8">
-            {['Features', 'Pricing', 'Testimonials', 'About'].map((item) => (
-              <motion.a
-                key={item}
-                href={`#${item.toLowerCase()}`}
-                whileHover={{ y: -2 }}
-                className="text-white/70 hover:text-white transition-colors relative group"
-              >
-                {item}
-                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-violet-500 to-fuchsia-500 group-hover:w-full transition-all duration-300" />
-              </motion.a>
-            ))}
-          </div>
-          
-          {/* CTA Buttons */}
-          <div className="flex items-center gap-4">
-            <motion.button
+    <>
+      <motion.nav
+        initial={{ y: -100 }}
+        animate={{ y: 0 }}
+        className={`fixed top-0 left-0 right-0 z-40 transition-all duration-300 ${
+          scrolled || mobileMenuOpen ? 'bg-black/80 backdrop-blur-xl border-b border-white/10' : ''
+        }`}
+      >
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4">
+          <div className="flex items-center justify-between">
+            {/* Logo */}
+            <motion.div
               whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="hidden sm:block text-white/70 hover:text-white transition-colors"
+              className="flex items-center gap-2"
             >
-              Sign In
-            </motion.button>
-            <MagneticButton className="px-6 py-2.5 rounded-full bg-gradient-to-r from-violet-500 to-fuchsia-500 text-white font-medium hover:shadow-lg hover:shadow-violet-500/30 transition-all duration-300">
-              Start Free Trial
-            </MagneticButton>
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center">
+                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+              </div>
+              <span className="text-xl font-bold text-white">Clawdbot</span>
+            </motion.div>
+            
+            {/* Desktop Nav Links */}
+            <div className="hidden md:flex items-center gap-8">
+              {navItems.map((item) => (
+                <motion.a
+                  key={item}
+                  href={`#${item.toLowerCase()}`}
+                  whileHover={{ y: -2 }}
+                  className="text-white/70 hover:text-white transition-colors relative group"
+                >
+                  {item}
+                  <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-violet-500 to-fuchsia-500 group-hover:w-full transition-all duration-300" />
+                </motion.a>
+              ))}
+            </div>
+            
+            {/* Desktop CTA Buttons */}
+            <div className="hidden md:flex items-center gap-4">
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="text-white/70 hover:text-white transition-colors min-h-[44px] px-4"
+              >
+                Sign In
+              </motion.button>
+              <MagneticButton className="px-6 py-2.5 min-h-[44px] rounded-full bg-gradient-to-r from-violet-500 to-fuchsia-500 text-white font-medium hover:shadow-lg hover:shadow-violet-500/30 transition-all duration-300">
+                Start Free Trial
+              </MagneticButton>
+            </div>
+
+            {/* Mobile Menu Button */}
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="md:hidden w-11 h-11 flex items-center justify-center rounded-lg hover:bg-white/10 transition-colors"
+              aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
+              aria-expanded={mobileMenuOpen}
+            >
+              <svg 
+                className="w-6 h-6 text-white transition-transform duration-200" 
+                fill="none" 
+                stroke="currentColor" 
+                viewBox="0 0 24 24"
+              >
+                {mobileMenuOpen ? (
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                ) : (
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                )}
+              </svg>
+            </button>
           </div>
         </div>
-      </div>
-    </motion.nav>
+      </motion.nav>
+
+      {/* Mobile Menu Overlay */}
+      <AnimatePresence>
+        {mobileMenuOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 z-30 bg-black/90 backdrop-blur-xl md:hidden"
+            onClick={() => setMobileMenuOpen(false)}
+          >
+            <motion.div
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.2, delay: 0.1 }}
+              className="pt-24 px-6 pb-8"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Mobile Nav Links */}
+              <div className="space-y-1 mb-8">
+                {navItems.map((item, i) => (
+                  <motion.a
+                    key={item}
+                    href={`#${item.toLowerCase()}`}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.1 + i * 0.05 }}
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="block py-3 px-4 text-lg font-medium text-white/80 hover:text-white hover:bg-white/10 rounded-lg transition-colors min-h-[48px] flex items-center"
+                  >
+                    {item}
+                  </motion.a>
+                ))}
+              </div>
+
+              {/* Mobile CTA Buttons */}
+              <div className="space-y-3">
+                <motion.a
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.3 }}
+                  href="#"
+                  className="block w-full py-3 px-6 text-center text-white/80 hover:text-white border border-white/20 rounded-xl font-medium min-h-[48px] flex items-center justify-center"
+                >
+                  Sign In
+                </motion.a>
+                <motion.a
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.35 }}
+                  href="/api/checkout?price=price_1SwtCbBfSldKMuDjDmRHqErh"
+                  className="block w-full py-3 px-6 text-center text-white bg-gradient-to-r from-violet-500 to-fuchsia-500 rounded-xl font-medium min-h-[48px] flex items-center justify-center"
+                >
+                  Start Free Trial
+                </motion.a>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </>
   );
 };
 
@@ -718,12 +823,12 @@ const HeroSection = () => {
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
-          className="text-5xl md:text-7xl lg:text-8xl font-bold text-white mb-6 leading-tight"
+          className="text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-bold text-white mb-4 sm:mb-6 leading-tight"
         >
           Your AI that
           <br />
           <GradientText>{typedText}</GradientText>
-          <span className="inline-block w-1 h-16 md:h-20 bg-violet-400 ml-2 animate-pulse" />
+          <span className="inline-block w-1 h-10 sm:h-16 md:h-20 bg-violet-400 ml-1 sm:ml-2 animate-pulse" />
         </motion.h1>
         
         {/* Subheadline */}
@@ -731,7 +836,7 @@ const HeroSection = () => {
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4 }}
-          className="text-xl md:text-2xl text-white/60 max-w-3xl mx-auto mb-12 leading-relaxed"
+          className="text-base sm:text-xl md:text-2xl text-white/60 max-w-3xl mx-auto mb-8 sm:mb-12 leading-relaxed px-4 sm:px-0"
         >
           Clawdbot is the AI assistant that remembers everything. Unlike ChatGPT, 
           it knows your context, projects, and preferences across every session.
@@ -742,10 +847,10 @@ const HeroSection = () => {
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5 }}
-          className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16"
+          className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 mb-12 sm:mb-16 px-4 sm:px-0"
         >
-          <a href="/api/checkout?price=price_1SwtCbBfSldKMuDjDmRHqErh">
-            <MagneticButton className="group px-8 py-4 rounded-full bg-gradient-to-r from-violet-500 to-fuchsia-500 text-white font-semibold text-lg hover:shadow-2xl hover:shadow-violet-500/30 transition-all duration-300 flex items-center gap-2">
+          <a href="/api/checkout?price=price_1SwtCbBfSldKMuDjDmRHqErh" className="w-full sm:w-auto">
+            <MagneticButton className="group w-full sm:w-auto px-6 sm:px-8 py-4 min-h-[52px] rounded-full bg-gradient-to-r from-violet-500 to-fuchsia-500 text-white font-semibold text-base sm:text-lg hover:shadow-2xl hover:shadow-violet-500/30 transition-all duration-300 flex items-center justify-center gap-2">
               Start Free Trial
               <motion.svg
                 className="w-5 h-5"
@@ -760,8 +865,8 @@ const HeroSection = () => {
             </MagneticButton>
           </a>
           
-          <a href="#pricing">
-            <MagneticButton className="px-8 py-4 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 text-white font-semibold text-lg hover:bg-white/20 transition-all duration-300 flex items-center gap-2">
+          <a href="#pricing" className="w-full sm:w-auto">
+            <MagneticButton className="w-full sm:w-auto px-6 sm:px-8 py-4 min-h-[52px] rounded-full bg-white/10 backdrop-blur-sm border border-white/20 text-white font-semibold text-base sm:text-lg hover:bg-white/20 transition-all duration-300 flex items-center justify-center gap-2">
               <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M8 5v14l11-7z" />
               </svg>
@@ -803,14 +908,14 @@ const HeroSection = () => {
           </p>
         </motion.div>
         
-        {/* Hero Image/Product Preview */}
+        {/* Hero Image/Product Preview - Hidden on mobile for performance, shown on tablets+ */}
         <motion.div
           initial={{ opacity: 0, y: 100 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.8, duration: 0.8 }}
-          className="mt-20 relative"
+          className="mt-12 sm:mt-20 relative hidden sm:block"
         >
-          <div className="relative mx-auto max-w-5xl">
+          <div className="relative mx-auto max-w-5xl px-4">
             {/* Glow effect */}
             <div className="absolute -inset-4 bg-gradient-to-r from-violet-500 via-fuchsia-500 to-cyan-500 rounded-2xl blur-2xl opacity-30" />
             
@@ -818,22 +923,22 @@ const HeroSection = () => {
             <div className="relative rounded-2xl overflow-hidden border border-white/20 bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl p-1">
               <div className="rounded-xl bg-gray-900/90 overflow-hidden">
                 {/* Browser chrome */}
-                <div className="flex items-center gap-2 px-4 py-3 bg-black/50 border-b border-white/10">
-                  <div className="flex gap-1.5">
-                    <div className="w-3 h-3 rounded-full bg-red-500/80" />
-                    <div className="w-3 h-3 rounded-full bg-yellow-500/80" />
-                    <div className="w-3 h-3 rounded-full bg-green-500/80" />
+                <div className="flex items-center gap-2 px-3 sm:px-4 py-2 sm:py-3 bg-black/50 border-b border-white/10">
+                  <div className="flex gap-1 sm:gap-1.5">
+                    <div className="w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-red-500/80" />
+                    <div className="w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-yellow-500/80" />
+                    <div className="w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-green-500/80" />
                   </div>
                   <div className="flex-1 flex justify-center">
-                    <div className="px-4 py-1 rounded-lg bg-white/10 text-white/60 text-sm">
+                    <div className="px-2 sm:px-4 py-1 rounded-lg bg-white/10 text-white/60 text-xs sm:text-sm">
                       app.clawdbot.ai/chat
                     </div>
                   </div>
                 </div>
                 
                 {/* Dashboard content */}
-                <div className="p-6 space-y-4">
-                  <div className="grid grid-cols-3 gap-4">
+                <div className="p-3 sm:p-6 space-y-3 sm:space-y-4">
+                  <div className="grid grid-cols-3 gap-2 sm:gap-4">
                     {[
                       { label: 'Emails Processed', value: '1,247', change: '+18%' },
                       { label: 'Tasks Completed', value: '89', change: '+24%' },
@@ -844,29 +949,44 @@ const HeroSection = () => {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 1 + i * 0.1 }}
-                        className="p-4 rounded-xl bg-white/5 border border-white/10"
+                        className="p-2 sm:p-4 rounded-lg sm:rounded-xl bg-white/5 border border-white/10"
                       >
-                        <p className="text-white/60 text-sm mb-1">{stat.label}</p>
-                        <p className="text-2xl font-bold text-white">{stat.value}</p>
-                        <p className="text-emerald-400 text-sm">{stat.change}</p>
+                        <p className="text-white/60 text-xs sm:text-sm mb-0.5 sm:mb-1 truncate">{stat.label}</p>
+                        <p className="text-lg sm:text-2xl font-bold text-white">{stat.value}</p>
+                        <p className="text-emerald-400 text-xs sm:text-sm">{stat.change}</p>
                       </motion.div>
                     ))}
                   </div>
                   
-                  {/* Chart placeholder */}
-                  <div className="h-48 rounded-xl bg-white/5 border border-white/10 flex items-end justify-around p-4">
-                    {[40, 65, 45, 80, 55, 90, 70, 85, 60, 95, 75, 88].map((height, i) => (
+                  {/* Chart placeholder - fewer bars on tablet */}
+                  <div className="h-32 sm:h-48 rounded-lg sm:rounded-xl bg-white/5 border border-white/10 flex items-end justify-around p-2 sm:p-4">
+                    {[40, 65, 45, 80, 55, 90, 70, 85, 60, 95, 75, 88].slice(0, typeof window !== 'undefined' && window.innerWidth < 768 ? 6 : 12).map((height, i) => (
                       <motion.div
                         key={i}
                         initial={{ height: 0 }}
                         animate={{ height: `${height}%` }}
                         transition={{ delay: 1.3 + i * 0.05, duration: 0.5 }}
-                        className="w-6 rounded-t-lg bg-gradient-to-t from-violet-500 to-fuchsia-500"
+                        className="w-3 sm:w-6 rounded-t-md sm:rounded-t-lg bg-gradient-to-t from-violet-500 to-fuchsia-500"
                       />
                     ))}
                   </div>
                 </div>
               </div>
+            </div>
+          </div>
+        </motion.div>
+
+        {/* Mobile-only: Simple illustration/badge instead of dashboard mockup */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.6 }}
+          className="mt-8 sm:hidden"
+        >
+          <div className="mx-auto w-48 h-48 rounded-2xl bg-gradient-to-br from-violet-500/20 to-fuchsia-500/20 border border-white/10 backdrop-blur-xl flex items-center justify-center">
+            <div className="text-center">
+              <div className="text-5xl mb-2">🤖</div>
+              <p className="text-white/60 text-sm">Your AI is ready</p>
             </div>
           </div>
         </motion.div>
@@ -982,27 +1102,27 @@ const FeaturesSection = () => {
   ];
   
   return (
-    <section id="features" className="py-32 relative z-10">
-      <div className="max-w-7xl mx-auto px-6">
+    <section id="features" className="py-16 sm:py-24 lg:py-32 relative z-10">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="text-center mb-20"
+          className="text-center mb-12 sm:mb-16 lg:mb-20"
         >
-          <span className="inline-block px-4 py-1.5 rounded-full bg-violet-500/10 border border-violet-500/20 text-violet-400 text-sm font-medium mb-6">
+          <span className="inline-block px-4 py-1.5 rounded-full bg-violet-500/10 border border-violet-500/20 text-violet-400 text-sm font-medium mb-4 sm:mb-6">
             Features
           </span>
-          <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6">
+          <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-4 sm:mb-6 px-2">
             Everything you need to{' '}
             <GradientText>10x your productivity</GradientText>
           </h2>
-          <p className="text-xl text-white/60 max-w-2xl mx-auto">
+          <p className="text-base sm:text-lg lg:text-xl text-white/60 max-w-2xl mx-auto px-4">
             Powerful features designed to help your team move faster and build better products.
           </p>
         </motion.div>
         
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           {features.map((feature, i) => (
             <FeatureCard key={i} {...feature} delay={i * 0.1} />
           ))}
@@ -1024,15 +1144,15 @@ const StatsSection = () => {
   ];
   
   return (
-    <section className="py-32 relative z-10">
-      <div className="max-w-7xl mx-auto px-6">
-        <div className="relative rounded-3xl overflow-hidden">
+    <section className="py-16 sm:py-24 lg:py-32 relative z-10">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6">
+        <div className="relative rounded-2xl sm:rounded-3xl overflow-hidden">
           {/* Background gradient */}
           <div className="absolute inset-0 bg-gradient-to-br from-violet-500/20 via-fuchsia-500/20 to-cyan-500/20" />
           <div className="absolute inset-0 backdrop-blur-3xl" />
           
-          <div className="relative p-12 md:p-20">
-            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-12">
+          <div className="relative p-6 sm:p-12 md:p-20">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 sm:gap-8 lg:gap-12">
               {stats.map((stat, i) => (
                 <motion.div
                   key={i}
@@ -1042,10 +1162,10 @@ const StatsSection = () => {
                   transition={{ delay: i * 0.1 }}
                   className="text-center"
                 >
-                  <div className="text-5xl md:text-6xl font-bold text-white mb-2">
+                  <div className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-1 sm:mb-2">
                     <AnimatedCounter value={stat.value} prefix={stat.prefix} suffix={stat.suffix} />
                   </div>
-                  <p className="text-white/60">{stat.label}</p>
+                  <p className="text-white/60 text-sm sm:text-base">{stat.label}</p>
                 </motion.div>
               ))}
             </div>
@@ -1085,28 +1205,28 @@ const TestimonialsSection = () => {
   ];
   
   return (
-    <section id="testimonials" className="py-32 relative z-10">
-      <div className="max-w-7xl mx-auto px-6">
+    <section id="testimonials" className="py-16 sm:py-24 lg:py-32 relative z-10">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="text-center mb-20"
+          className="text-center mb-12 sm:mb-16 lg:mb-20"
         >
-          <span className="inline-block px-4 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-sm font-medium mb-6">
+          <span className="inline-block px-4 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-sm font-medium mb-4 sm:mb-6">
             Testimonials
           </span>
-          <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6">
+          <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-4 sm:mb-6 px-2">
             Loved by{' '}
             <GradientText>power users</GradientText>
             {' '}everywhere
           </h2>
-          <p className="text-xl text-white/60 max-w-2xl mx-auto">
+          <p className="text-base sm:text-lg lg:text-xl text-white/60 max-w-2xl mx-auto px-4">
             Don't just take our word for it. Here's what leaders at top companies have to say.
           </p>
         </motion.div>
         
-        <div className="grid md:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
           {testimonials.map((testimonial, i) => (
             <TestimonialCard key={i} {...testimonial} delay={i * 200} />
           ))}
@@ -1171,28 +1291,29 @@ const PricingSection = () => {
   ];
   
   return (
-    <section id="pricing" className="py-32 relative z-10">
-      <div className="max-w-7xl mx-auto px-6">
+    <section id="pricing" className="py-16 sm:py-24 lg:py-32 relative z-10">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="text-center mb-20"
+          className="text-center mb-12 sm:mb-16 lg:mb-20"
         >
-          <span className="inline-block px-4 py-1.5 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-sm font-medium mb-6">
+          <span className="inline-block px-4 py-1.5 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-sm font-medium mb-4 sm:mb-6">
             Pricing
           </span>
-          <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6">
+          <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-4 sm:mb-6 px-2">
             Simple,{' '}
             <GradientText>transparent</GradientText>
             {' '}pricing
           </h2>
-          <p className="text-xl text-white/60 max-w-2xl mx-auto">
+          <p className="text-base sm:text-lg lg:text-xl text-white/60 max-w-2xl mx-auto px-4">
             No hidden fees. No surprises. Start free, upgrade when you're ready.
           </p>
         </motion.div>
         
-        <div className="grid md:grid-cols-3 gap-8 items-start">
+        {/* Mobile: Stack cards with popular in middle. Desktop: 3 columns */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8 items-start">
           {plans.map((plan, i) => (
             <PricingCard key={i} {...plan} delay={i * 0.1} />
           ))}
@@ -1207,13 +1328,13 @@ const PricingSection = () => {
 // ----------------------------------------------------------------------------
 const CTASection = () => {
   return (
-    <section className="py-32 relative z-10">
-      <div className="max-w-5xl mx-auto px-6">
+    <section className="py-16 sm:py-24 lg:py-32 relative z-10">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6">
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           whileInView={{ opacity: 1, scale: 1 }}
           viewport={{ once: true }}
-          className="relative rounded-3xl overflow-hidden"
+          className="relative rounded-2xl sm:rounded-3xl overflow-hidden"
         >
           {/* Animated gradient background */}
           <div className="absolute inset-0">
@@ -1221,14 +1342,14 @@ const CTASection = () => {
             <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_transparent_0%,_rgba(0,0,0,0.4)_100%)]" />
           </div>
           
-          {/* Floating shapes */}
+          {/* Floating shapes - hidden on mobile for performance */}
           <motion.div
             animate={{
               rotate: [0, 360],
               scale: [1, 1.2, 1],
             }}
             transition={{ duration: 20, repeat: Infinity }}
-            className="absolute top-10 right-10 w-32 h-32 rounded-full border border-white/20"
+            className="absolute top-10 right-10 w-24 sm:w-32 h-24 sm:h-32 rounded-full border border-white/20 hidden sm:block"
           />
           <motion.div
             animate={{
@@ -1236,15 +1357,15 @@ const CTASection = () => {
               scale: [1, 0.8, 1],
             }}
             transition={{ duration: 25, repeat: Infinity }}
-            className="absolute bottom-10 left-10 w-24 h-24 rounded-2xl border border-white/20"
+            className="absolute bottom-10 left-10 w-16 sm:w-24 h-16 sm:h-24 rounded-2xl border border-white/20 hidden sm:block"
           />
           
-          <div className="relative p-12 md:p-20 text-center">
+          <div className="relative p-6 sm:p-12 md:p-20 text-center">
             <motion.h2
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6"
+              className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-4 sm:mb-6"
             >
               Ready to transform
               <br />
@@ -1256,7 +1377,7 @@ const CTASection = () => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: 0.1 }}
-              className="text-xl text-white/80 max-w-2xl mx-auto mb-10"
+              className="text-base sm:text-lg lg:text-xl text-white/80 max-w-2xl mx-auto mb-6 sm:mb-10 px-2"
             >
               Stop repeating yourself to ChatGPT. Get an AI assistant that actually remembers.
               Start your free 14-day trial today.
@@ -1267,16 +1388,16 @@ const CTASection = () => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: 0.2 }}
-              className="flex flex-col sm:flex-row items-center justify-center gap-4"
+              className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4"
             >
-              <MagneticButton className="px-8 py-4 rounded-full bg-white text-violet-600 font-semibold text-lg hover:shadow-2xl hover:shadow-white/30 transition-all duration-300 flex items-center gap-2">
+              <MagneticButton className="w-full sm:w-auto px-6 sm:px-8 py-4 min-h-[52px] rounded-full bg-white text-violet-600 font-semibold text-base sm:text-lg hover:shadow-2xl hover:shadow-white/30 transition-all duration-300 flex items-center justify-center gap-2">
                 Start Free Trial
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
                 </svg>
               </MagneticButton>
               
-              <MagneticButton className="px-8 py-4 rounded-full bg-white/10 backdrop-blur-sm border border-white/30 text-white font-semibold text-lg hover:bg-white/20 transition-all duration-300">
+              <MagneticButton className="w-full sm:w-auto px-6 sm:px-8 py-4 min-h-[52px] rounded-full bg-white/10 backdrop-blur-sm border border-white/30 text-white font-semibold text-base sm:text-lg hover:bg-white/20 transition-all duration-300 flex items-center justify-center">
                 Talk to Sales
               </MagneticButton>
             </motion.div>
@@ -1286,7 +1407,7 @@ const CTASection = () => {
               whileInView={{ opacity: 1 }}
               viewport={{ once: true }}
               transition={{ delay: 0.3 }}
-              className="mt-6 text-white/60 text-sm"
+              className="mt-4 sm:mt-6 text-white/60 text-xs sm:text-sm"
             >
               No credit card required · 14-day free trial · Cancel anytime
             </motion.p>
@@ -1310,11 +1431,11 @@ const Footer = () => {
   
   return (
     <footer className="relative z-10 border-t border-white/10">
-      <div className="max-w-7xl mx-auto px-6 py-20">
-        <div className="grid md:grid-cols-2 lg:grid-cols-6 gap-12 mb-16">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-12 sm:py-20">
+        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-8 sm:gap-12 mb-12 sm:mb-16">
           {/* Brand */}
-          <div className="lg:col-span-2">
-            <div className="flex items-center gap-2 mb-6">
+          <div className="col-span-2 sm:col-span-2 lg:col-span-2">
+            <div className="flex items-center gap-2 mb-4 sm:mb-6">
               <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center">
                 <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
@@ -1322,16 +1443,16 @@ const Footer = () => {
               </div>
               <span className="text-xl font-bold text-white">Clawdbot</span>
             </div>
-            <p className="text-white/60 mb-6 max-w-xs">
+            <p className="text-white/60 mb-4 sm:mb-6 max-w-xs text-sm sm:text-base">
               Your AI assistant that remembers everything. Manages email, calendar, tasks, and more — across every session.
             </p>
-            <div className="flex gap-4">
+            <div className="flex gap-3">
               {['Twitter', 'GitHub', 'LinkedIn', 'Discord'].map((social) => (
                 <motion.a
                   key={social}
                   whileHover={{ y: -3 }}
                   href="#"
-                  className="w-10 h-10 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 flex items-center justify-center text-white/60 hover:text-white transition-colors"
+                  className="w-10 h-10 min-h-[44px] min-w-[44px] rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 flex items-center justify-center text-white/60 hover:text-white transition-colors"
                 >
                   {social[0]}
                 </motion.a>
@@ -1339,14 +1460,14 @@ const Footer = () => {
             </div>
           </div>
           
-          {/* Links */}
+          {/* Links - Collapsible on mobile */}
           {Object.entries(footerLinks).map(([title, links]) => (
-            <div key={title}>
-              <h4 className="font-semibold text-white mb-4">{title}</h4>
-              <ul className="space-y-3">
+            <div key={title} className="col-span-1">
+              <h4 className="font-semibold text-white mb-3 sm:mb-4 text-sm sm:text-base">{title}</h4>
+              <ul className="space-y-2 sm:space-y-3">
                 {links.map((link) => (
                   <li key={link}>
-                    <a href="#" className="text-white/60 hover:text-white transition-colors">
+                    <a href="#" className="text-white/60 hover:text-white transition-colors text-sm sm:text-base py-1 inline-block min-h-[44px] flex items-center">
                       {link}
                     </a>
                   </li>
@@ -1357,18 +1478,18 @@ const Footer = () => {
         </div>
         
         {/* Bottom */}
-        <div className="pt-8 border-t border-white/10 flex flex-col md:flex-row items-center justify-between gap-4">
-          <p className="text-white/40 text-sm">
+        <div className="pt-6 sm:pt-8 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <p className="text-white/40 text-xs sm:text-sm text-center sm:text-left">
             © 2026 Clawdbot, Inc. All rights reserved.
           </p>
-          <div className="flex items-center gap-6">
-            <a href="#" className="text-white/40 hover:text-white/60 text-sm transition-colors">
+          <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-6">
+            <a href="#" className="text-white/40 hover:text-white/60 text-xs sm:text-sm transition-colors py-2 min-h-[44px] flex items-center">
               Privacy Policy
             </a>
-            <a href="#" className="text-white/40 hover:text-white/60 text-sm transition-colors">
+            <a href="#" className="text-white/40 hover:text-white/60 text-xs sm:text-sm transition-colors py-2 min-h-[44px] flex items-center">
               Terms of Service
             </a>
-            <a href="#" className="text-white/40 hover:text-white/60 text-sm transition-colors">
+            <a href="#" className="text-white/40 hover:text-white/60 text-xs sm:text-sm transition-colors py-2 min-h-[44px] flex items-center">
               Cookie Settings
             </a>
           </div>

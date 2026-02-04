@@ -28,13 +28,14 @@ function rateLimit(ip: string): { allowed: boolean; remaining: number } {
 }
 
 // Security headers
+// SEC-010: Strengthened CSP with additional directives
 const securityHeaders = {
   'X-DNS-Prefetch-Control': 'on',
   'X-Frame-Options': 'DENY',
   'X-Content-Type-Options': 'nosniff',
   'X-XSS-Protection': '1; mode=block',
   'Referrer-Policy': 'strict-origin-when-cross-origin',
-  'Permissions-Policy': 'camera=(), microphone=(), geolocation=()',
+  'Permissions-Policy': 'camera=(), microphone=(), geolocation=(), payment=(self)',
   'Content-Security-Policy': [
     "default-src 'self'",
     "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com",
@@ -43,7 +44,13 @@ const securityHeaders = {
     "img-src 'self' data: https: blob:",
     "connect-src 'self' https://api.stripe.com wss: ws:",
     "frame-src 'self' https://js.stripe.com",
+    "form-action 'self'",  // SEC-010: Prevent form hijacking
+    "base-uri 'self'",     // SEC-010: Prevent base tag injection
+    "object-src 'none'",   // SEC-010: Block plugins
+    "upgrade-insecure-requests", // SEC-010: Force HTTPS
   ].join('; '),
+  // HSTS - enable after confirming HTTPS works
+  // 'Strict-Transport-Security': 'max-age=31536000; includeSubDomains',
 };
 
 // Routes that require authentication

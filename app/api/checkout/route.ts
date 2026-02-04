@@ -15,13 +15,21 @@ const stripe = process.env.STRIPE_SECRET_KEY
 
 // Allowed price IDs (whitelist) - ALWAYS enforce, never bypass
 const ALLOWED_PRICE_IDS = new Set([
-  process.env.STRIPE_PRICE_STARTER,
+  // Environment variable price IDs
+  process.env.STRIPE_PRICE_PERSONAL,
+  process.env.STRIPE_PRICE_PLUS,
   process.env.STRIPE_PRICE_PRO,
+  process.env.STRIPE_PRICE_FAMILY,
+  process.env.STRIPE_PRICE_TEAM,
+  // Legacy env vars for backwards compatibility
+  process.env.STRIPE_PRICE_STARTER,
   process.env.STRIPE_PRICE_ENTERPRISE,
   // Fallback hardcoded IDs if env vars not set (fail-safe)
-  'price_1SwtCbBfSldKMuDjM3p0kyG4', // Starter
-  'price_1SwtCbBfSldKMuDjDmRHqErh', // Pro
-  'price_1SwtCcBfSldKMuDjEKBqQ6lH', // Team
+  'price_personal',                   // Personal $9/mo
+  'price_1SwtCbBfSldKMuDjM3p0kyG4',  // Plus $19/mo (was Starter)
+  'price_1SwtCbBfSldKMuDjDmRHqErh',  // Pro $39/mo
+  'price_family',                     // Family $19/mo
+  'price_1SwtCcBfSldKMuDjEKBqQ6lH',  // Team $29/seat/mo
 ].filter(Boolean));
 
 // Rate limit check (simple in-memory)
@@ -215,7 +223,19 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // SEC-003 FIX: Whitelist check for POST endpoint (same as GET)
+    if (!ALLOWED_PRICE_IDS.has(priceId)) {
+      console.warn(`⚠️ Invalid price ID attempt (POST): ${priceId} from IP: ${ip}`);
+      return NextResponse.json(
+        { error: 'Invalid price ID' },
+        { status: 400 }
+      );
+    }
+
+    // Sanitize URLs - only allow same-origin or null
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+    const safeSuccessUrl = successUrl?.startsWith(appUrl) ? successUrl : `${appUrl}/success?session_id={CHECKOUT_SESSION_ID}`;
+    const safeCancelUrl = cancelUrl?.startsWith(appUrl) ? cancelUrl : `${appUrl}?cancelled=true`;
 
     const session = await stripe.checkout.sessions.create({
       mode: 'subscription',
@@ -227,12 +247,20 @@ export async function POST(request: NextRequest) {
           quantity: 1,
         },
       ],
-      success_url: successUrl || `${appUrl}/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: cancelUrl || `${appUrl}?cancelled=true`,
+      success_url: safeSuccessUrl,
+      cancel_url: safeCancelUrl,
       allow_promotion_codes: true,
       billing_address_collection: 'required',
       subscription_data: {
         trial_period_days: 14,
+        metadata: {
+          source: 'api_checkout',
+          timestamp: new Date().toISOString(),
+        },
+      },
+      metadata: {
+        ip_address: ip,
+        created_at: new Date().toISOString(),
       },
     });
 
