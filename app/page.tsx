@@ -642,7 +642,7 @@ const Navigation = () => {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
               </svg>
             </div>
-            <span className="text-xl font-bold text-white">Nexus</span>
+            <span className="text-xl font-bold text-white">Clawdbot</span>
           </motion.div>
           
           {/* Nav Links */}
@@ -829,7 +829,7 @@ const HeroSection = () => {
                   </div>
                   <div className="flex-1 flex justify-center">
                     <div className="px-4 py-1 rounded-lg bg-white/10 text-white/60 text-sm">
-                      app.nexus.io/dashboard
+                      app.Clawdbot.io/dashboard
                     </div>
                   </div>
                 </div>
@@ -1065,7 +1065,7 @@ const StatsSection = () => {
 const TestimonialsSection = () => {
   const testimonials = [
     {
-      testimonial: "Nexus completely transformed how we build products. We shipped 3x faster and our conversion rates went through the roof. Absolutely game-changing.",
+      testimonial: "Clawdbot completely transformed how we build products. We shipped 3x faster and our conversion rates went through the roof. Absolutely game-changing.",
       author: "Sarah Chen",
       role: "CTO",
       company: "TechFlow",
@@ -1079,7 +1079,7 @@ const TestimonialsSection = () => {
       avatar: "MR",
     },
     {
-      testimonial: "We evaluated 20+ tools before choosing Nexus. Nothing else comes close. The ROI was visible within the first week of implementation.",
+      testimonial: "We evaluated 20+ tools before choosing Clawdbot. Nothing else comes close. The ROI was visible within the first week of implementation.",
       author: "Emily Watson",
       role: "Head of Product",
       company: "GrowthLabs",
@@ -1323,7 +1323,7 @@ const Footer = () => {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                 </svg>
               </div>
-              <span className="text-xl font-bold text-white">Nexus</span>
+              <span className="text-xl font-bold text-white">Clawdbot</span>
             </div>
             <p className="text-white/60 mb-6 max-w-xs">
               The all-in-one platform for modern teams to build, launch, and scale products faster.
@@ -1362,7 +1362,7 @@ const Footer = () => {
         {/* Bottom */}
         <div className="pt-8 border-t border-white/10 flex flex-col md:flex-row items-center justify-between gap-4">
           <p className="text-white/40 text-sm">
-            © 2024 Nexus, Inc. All rights reserved.
+            © 2024 Clawdbot, Inc. All rights reserved.
           </p>
           <div className="flex items-center gap-6">
             <a href="#" className="text-white/40 hover:text-white/60 text-sm transition-colors">
