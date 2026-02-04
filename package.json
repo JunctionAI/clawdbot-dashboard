@@ -1,22 +1,26 @@
 {
   "name": "clawdbot-saas-dashboard",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "private": true,
+  "description": "Premium SaaS dashboard for Clawdbot - AI assistant platform",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "type-check": "tsc --noEmit",
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,css,md}\"",
+    "clean": "rm -rf .next out node_modules/.cache"
   },
   "dependencies": {
-    "@stripe/stripe-js": "^2.4.0",
-    "axios": "^1.6.5",
-    "framer-motion": "^12.31.0",
-    "lucide-react": "^0.563.0",
-    "next": "14.1.0",
+    "next": "^14.2.22",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "stripe": "^14.14.0"
+    "@stripe/stripe-js": "^2.4.0",
+    "stripe": "^14.14.0",
+    "axios": "^1.6.5",
+    "lucide-react": "^0.462.0",
+    "framer-motion": "^11.11.17"
   },
   "devDependencies": {
     "@types/node": "^20",
@@ -24,7 +28,24 @@
     "@types/react-dom": "^18",
     "autoprefixer": "^10.0.1",
     "postcss": "^8",
-    "tailwindcss": "^3.3.0",
-    "typescript": "^5"
-  }
+    "tailwindcss": "^3.4.0",
+    "typescript": "^5",
+    "prettier": "^3.2.0"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  },
+  "keywords": [
+    "saas",
+    "dashboard",
+    "ai",
+    "assistant",
+    "premium-ui",
+    "nextjs",
+    "react",
+    "typescript"
+  ],
+  "author": "Clawdbot Team",
+  "license": "UNLICENSED"
 }
