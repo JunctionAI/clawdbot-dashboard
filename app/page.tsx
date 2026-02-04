@@ -29,9 +29,11 @@ export default function Home() {
               Like ChatGPT, but it actually knows who you are.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-              <Button size="lg" className="text-lg px-8 py-4 shadow-glow-lg animate-scale-in">
-                Get Started →
-              </Button>
+              <a href="#pricing">
+                <Button size="lg" className="text-lg px-8 py-4 shadow-glow-lg animate-scale-in">
+                  Get Started →
+                </Button>
+              </a>
               <Button variant="outline" size="lg" className="text-lg px-8 py-4 animate-scale-in" style={{ animationDelay: '0.1s' } as React.CSSProperties}>
                 Watch Demo
               </Button>
@@ -130,9 +132,11 @@ export default function Home() {
                       <span className="text-green-400">✓</span> Email support
                     </li>
                   </ul>
-                  <Button variant="outline" className="w-full">
-                    Start Free Trial
-                  </Button>
+                  <a href="/api/checkout?price=price_1SwtCbBfSldKMuDjM3p0kyG4" className="block w-full">
+                    <Button variant="outline" className="w-full">
+                      Start Free Trial
+                    </Button>
+                  </a>
                 </CardContent>
               </Card>
 
@@ -173,9 +177,11 @@ export default function Home() {
                       <span className="text-green-400">✓</span> Priority support
                     </li>
                   </ul>
-                  <Button className="w-full shadow-glow">
-                    Start Free Trial
-                  </Button>
+                  <a href="/api/checkout?price=price_1SwtCbBfSldKMuDjDmRHqErh" className="block w-full">
+                    <Button className="w-full shadow-glow">
+                      Start Free Trial
+                    </Button>
+                  </a>
                 </CardContent>
               </Card>
 
@@ -211,9 +217,11 @@ export default function Home() {
                       <span className="text-green-400">✓</span> Dedicated support
                     </li>
                   </ul>
-                  <Button variant="outline" className="w-full">
-                    Start Free Trial
-                  </Button>
+                  <a href="/api/checkout?price=price_1SwtCcBfSldKMuDjEKBqQ6lH" className="block w-full">
+                    <Button variant="outline" className="w-full">
+                      Start Free Trial
+                    </Button>
+                  </a>
                 </CardContent>
               </Card>
             </div>
@@ -275,9 +283,11 @@ export default function Home() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <Button size="lg" className="text-lg px-12 py-4 shadow-glow-lg">
-                Start Your Free Trial →
-              </Button>
+              <a href="/api/checkout?price=price_1SwtCbBfSldKMuDjDmRHqErh">
+                <Button size="lg" className="text-lg px-12 py-4 shadow-glow-lg">
+                  Start Your Free Trial →
+                </Button>
+              </a>
               <p className="text-gray-400 text-sm mt-4">
                 No credit card required • 14-day free trial • Cancel anytime
               </p>
