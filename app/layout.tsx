@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next';
 import { Inter, JetBrains_Mono } from 'next/font/google';
 import './globals.css';
 import { Providers } from '@/components/Providers';
+import { HomepageJsonLd } from '@/components/JsonLd';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -88,6 +89,11 @@ export default function RootLayout({
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        {/* DNS prefetch for performance */}
+        <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
+        <link rel="dns-prefetch" href="https://js.stripe.com" />
+        {/* Structured data for SEO */}
+        <HomepageJsonLd />
       </head>
       <body className="min-h-screen font-sans antialiased">
         <Providers>

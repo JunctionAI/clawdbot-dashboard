@@ -637,7 +637,7 @@ const Navigation = () => {
     };
   }, [mobileMenuOpen]);
 
-  const navItems = ['Features', 'Pricing', 'Testimonials', 'About'];
+  const navItems = ['Demo', 'Features', 'Pricing', 'Testimonials'];
   
   return (
     <>
@@ -668,7 +668,7 @@ const Navigation = () => {
               {navItems.map((item) => (
                 <motion.a
                   key={item}
-                  href={`#${item.toLowerCase()}`}
+                  href={item === 'Demo' ? '/demo' : `#${item.toLowerCase()}`}
                   whileHover={{ y: -2 }}
                   className="text-white/70 hover:text-white transition-colors relative group"
                 >
@@ -740,13 +740,14 @@ const Navigation = () => {
                 {navItems.map((item, i) => (
                   <motion.a
                     key={item}
-                    href={`#${item.toLowerCase()}`}
+                    href={item === 'Demo' ? '/demo' : `#${item.toLowerCase()}`}
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.1 + i * 0.05 }}
                     onClick={() => setMobileMenuOpen(false)}
                     className="block py-3 px-4 text-lg font-medium text-white/80 hover:text-white hover:bg-white/10 rounded-lg transition-colors min-h-[48px] flex items-center"
                   >
+                    {item === 'Demo' && <span className="mr-2">🎮</span>}
                     {item}
                   </motion.a>
                 ))}
@@ -767,7 +768,7 @@ const Navigation = () => {
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.35 }}
-                  href="/api/checkout?price=price_1SwtCbBfSldKMuDjDmRHqErh"
+                  href="/checkout"
                   className="block w-full py-3 px-6 text-center text-white bg-gradient-to-r from-violet-500 to-fuchsia-500 rounded-xl font-medium min-h-[48px] flex items-center justify-center"
                 >
                   Start Free Trial
@@ -849,7 +850,7 @@ const HeroSection = () => {
           transition={{ delay: 0.5 }}
           className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 mb-12 sm:mb-16 px-4 sm:px-0"
         >
-          <a href="/api/checkout?price=price_1SwtCbBfSldKMuDjDmRHqErh" className="w-full sm:w-auto">
+          <a href="/checkout" className="w-full sm:w-auto">
             <MagneticButton className="group w-full sm:w-auto px-6 sm:px-8 py-4 min-h-[52px] rounded-full bg-gradient-to-r from-violet-500 to-fuchsia-500 text-white font-semibold text-base sm:text-lg hover:shadow-2xl hover:shadow-violet-500/30 transition-all duration-300 flex items-center justify-center gap-2">
               Start Free Trial
               <motion.svg
@@ -865,12 +866,13 @@ const HeroSection = () => {
             </MagneticButton>
           </a>
           
-          <a href="#pricing" className="w-full sm:w-auto">
+          <a href="/demo" className="w-full sm:w-auto">
             <MagneticButton className="w-full sm:w-auto px-6 sm:px-8 py-4 min-h-[52px] rounded-full bg-white/10 backdrop-blur-sm border border-white/20 text-white font-semibold text-base sm:text-lg hover:bg-white/20 transition-all duration-300 flex items-center justify-center gap-2">
-              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M8 5v14l11-7z" />
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
-              See Pricing
+              Try Demo Free
             </MagneticButton>
           </a>
         </motion.div>
@@ -1242,50 +1244,48 @@ const TestimonialsSection = () => {
 const PricingSection = () => {
   const plans = [
     {
-      name: 'Starter',
-      price: '$29',
+      name: 'Personal',
+      price: '$9',
       period: '/month',
-      description: 'Perfect for individuals getting started',
-      priceId: 'price_1SwtCbBfSldKMuDjM3p0kyG4',
+      description: 'Your AI that actually does things',
+      priceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_PERSONAL || 'price_1Sx1rhBfSldKMuDj23HEtKwS',
       features: [
-        '5,000 messages/month',
-        '3 AI agents',
-        'Chat + Memory + Web search',
+        'Unlimited messages',
+        '15 skills included',
+        'Full memory (remembers everything)',
+        'All platforms (web, mobile, Discord)',
         'Email support',
-        'API access',
       ],
     },
     {
-      name: 'Pro',
-      price: '$79',
+      name: 'Plus',
+      price: '$19',
       period: '/month',
-      description: 'For power users who want it all',
-      priceId: 'price_1SwtCbBfSldKMuDjDmRHqErh',
+      description: 'Advanced actions & integrations',
+      priceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_PLUS || 'price_1Sx1riBfSldKMuDjVcuXZHfE',
       features: [
-        '20,000 messages/month',
-        'Unlimited memory',
-        'Gmail + Calendar integration',
+        'Everything in Personal',
+        'Unlimited skills',
+        'Gmail & Calendar integration',
+        'Voice conversations',
         'Browser automation',
         'Priority support',
-        'Advanced analytics',
-        'Custom workflows',
       ],
       popular: true,
     },
     {
-      name: 'Team',
-      price: '$199',
+      name: 'Pro',
+      price: '$39',
       period: '/month',
-      description: 'For teams that need unlimited power',
-      priceId: 'price_1SwtCcBfSldKMuDjEKBqQ6lH',
+      description: 'Full power for professionals',
+      priceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_PRO || 'price_1Sx1rjBfSldKMuDjgYJJBBK9',
       features: [
-        '100,000 messages/month',
-        'Unlimited agents',
-        'All Pro features',
-        '5 team seats',
-        'Shared workspaces',
+        'Everything in Plus',
+        'API access',
+        'Custom workflows',
+        'Advanced automation',
+        'Early access to new features',
         'Dedicated support',
-        'Custom integrations',
       ],
     },
   ];

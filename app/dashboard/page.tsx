@@ -1,14 +1,18 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
-import { LoadingScreen, LoadingSkeleton } from '@/components/ui/LoadingSpinner';
+import { LoadingScreen } from '@/components/ui/LoadingSpinner';
 import { ProgressBar } from '@/components/ui/ProgressBar';
 import { Badge } from '@/components/ui/Badge';
 import { StatCard } from '@/components/ui/StatCard';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { ErrorState } from '@/components/ui/ErrorState';
+import { StatsSkeleton, CardSkeleton } from '@/components/ui/Skeleton';
+import { useToast } from '@/components/ui/Toast';
+import { IntegrationItem, IntegrationsEmptyState } from '@/components/dashboard';
+import { ActivityItem, ActivityEmptyState, ActivitySkeleton } from '@/components/dashboard';
 import { 
   MessageSquareIcon, 
   UsersIcon, 
@@ -19,8 +23,10 @@ import {
   BookOpenIcon,
   LifeBuoyIcon,
   CreditCardIcon,
-  BrainIcon
+  BrainIcon,
+  GiftIcon
 } from '@/components/ui/icons';
+import { NotificationBell } from '@/components/notifications/NotificationBell';
 
 interface CustomerData {
   email: string;
@@ -53,60 +59,106 @@ export default function Dashboard() {
   const [customer, setCustomer] = useState<CustomerData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [retryCount, setRetryCount] = useState(0);
+  const { addToast } = useToast();
+
+  const loadDashboard = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    
+    try {
+      // Simulated API call - replace with actual endpoint
+      await new Promise(resolve => setTimeout(resolve, 1200));
+      
+      // TODO: Replace with actual API call
+      // const response = await fetch('/api/customer');
+      // if (!response.ok) throw new Error('Failed to load dashboard');
+      // const data = await response.json();
+      
+      setCustomer({
+        email: 'user@example.com',
+        plan: 'Pro',
+        status: 'active',
+        workspaceId: 'claw_demo_workspace',
+        messagesUsed: 3420,
+        messagesLimit: 20000,
+        agentsUsed: 4,
+        agentsLimit: 10,
+        integrations: [
+          { name: 'Gmail', icon: '📧', connected: true, lastSync: '2 minutes ago' },
+          { name: 'Calendar', icon: '📅', connected: true, lastSync: '5 minutes ago' },
+          { name: 'Slack', icon: '💬', connected: false },
+          { name: 'GitHub', icon: '🐙', connected: false },
+        ],
+        recentActivity: [
+          { id: '1', type: 'message', description: 'Processed 23 emails', timestamp: '5 min ago' },
+          { id: '2', type: 'agent', description: 'Agent scheduled meeting', timestamp: '1 hour ago' },
+          { id: '3', type: 'integration', description: 'Gmail sync completed', timestamp: '2 hours ago' },
+        ]
+      });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load dashboard');
+      addToast({
+        type: 'error',
+        title: 'Failed to load',
+        message: 'Could not load dashboard data. Please try again.',
+      });
+    } finally {
+      setLoading(false);
+    }
+  }, [addToast]);
 
   useEffect(() => {
-    // BUG-004 fix: Store timeout ID for cleanup
-    const timeoutId = setTimeout(() => {
-      try {
-        // TODO: BUG-005 - Replace with actual API call
-        // const response = await fetch('/api/customer');
-        // const data = await response.json();
-        setCustomer({
-          email: 'user@example.com',
-          plan: 'Pro',
-          status: 'active',
-          workspaceId: 'claw_demo_workspace',
-          messagesUsed: 3420,
-          messagesLimit: 20000,
-          agentsUsed: 4,
-          agentsLimit: 10,
-          integrations: [
-            { name: 'Gmail', icon: '📧', connected: true, lastSync: '2 minutes ago' },
-            { name: 'Calendar', icon: '📅', connected: true, lastSync: '5 minutes ago' },
-            { name: 'Slack', icon: '💬', connected: false },
-            { name: 'GitHub', icon: '🐙', connected: false },
-          ],
-          recentActivity: [
-            { id: '1', type: 'message', description: 'Processed 23 emails', timestamp: '5 min ago' },
-            { id: '2', type: 'agent', description: 'Agent scheduled meeting', timestamp: '1 hour ago' },
-            { id: '3', type: 'integration', description: 'Gmail sync completed', timestamp: '2 hours ago' },
-          ]
-        });
-        setLoading(false);
-      } catch (err) {
-        setError('Failed to load dashboard data');
-        setLoading(false);
-      }
-    }, 1200);
-    
-    // Cleanup timeout on unmount
-    return () => clearTimeout(timeoutId);
-  }, []);
+    loadDashboard();
+  }, [loadDashboard, retryCount]);
 
-  if (loading) {
+  const handleRetry = () => {
+    setRetryCount(prev => prev + 1);
+  };
+
+  const handleConnectIntegration = async (name: string) => {
+    // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    // In real implementation: call API and update state
+    console.log(`Connecting ${name}...`);
+  };
+
+  const handleDisconnectIntegration = async (name: string) => {
+    // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    // In real implementation: call API and update state
+    console.log(`Disconnecting ${name}...`);
+  };
+
+  // Full page loading state
+  if (loading && !customer) {
     return <LoadingScreen />;
   }
 
-  if (error || !customer) {
+  // Full page error state
+  if (error && !customer) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 p-8 flex items-center justify-center">
-        <ErrorState 
-          message={error || 'Failed to load dashboard'}
-          onRetry={() => window.location.reload()}
-        />
+        <div className="max-w-md w-full">
+          <ErrorState 
+            title="Dashboard Unavailable"
+            message={error}
+            onRetry={handleRetry}
+          />
+          <div className="mt-6 text-center">
+            <p className="text-gray-500 text-sm">
+              If this problem persists, please{' '}
+              <a href="mailto:support@clawdbot.ai" className="text-purple-400 hover:text-purple-300">
+                contact support
+              </a>
+            </p>
+          </div>
+        </div>
       </div>
     );
   }
+
+  if (!customer) return null;
 
   const statusColors = {
     active: 'success' as const,
@@ -133,7 +185,8 @@ export default function Dashboard() {
               </Badge>
             </p>
           </div>
-          <div className="flex gap-2 sm:gap-3 w-full sm:w-auto">
+          <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
+            <NotificationBell />
             <Button variant="ghost" size="sm" className="flex-1 sm:flex-none">
               <SettingsIcon className="w-5 h-5" />
               <span className="hidden xs:inline">Settings</span>
@@ -229,27 +282,38 @@ export default function Dashboard() {
                 animated
               />
               <div className="mt-4 grid grid-cols-2 gap-3">
-                {[...Array(customer.agentsLimit)].map((_, i) => (
-                  <div 
-                    key={i}
-                    className={`p-3 rounded-lg border transition-all duration-300 ${
-                      i < customer.agentsUsed 
-                        ? 'bg-green-500/10 border-green-500/30 shadow-glow' 
-                        : 'bg-gray-800/50 border-gray-700/30'
-                    }`}
-                  >
-                    <div className="flex items-center gap-2">
-                      <div className={`w-2 h-2 rounded-full ${
-                        i < customer.agentsUsed ? 'bg-green-400 animate-pulse' : 'bg-gray-600'
-                      }`}></div>
-                      <span className={`text-sm font-medium ${
-                        i < customer.agentsUsed ? 'text-white' : 'text-gray-500'
-                      }`}>
-                        Agent {i + 1}
-                      </span>
+                {customer.agentsLimit === 0 ? (
+                  <EmptyState
+                    title="No agent slots"
+                    description="Upgrade your plan to add AI agents"
+                    action={{
+                      label: 'Upgrade',
+                      onClick: () => window.location.href = '/checkout',
+                    }}
+                  />
+                ) : (
+                  [...Array(customer.agentsLimit)].map((_, i) => (
+                    <div 
+                      key={i}
+                      className={`p-3 rounded-lg border transition-all duration-300 ${
+                        i < customer.agentsUsed 
+                          ? 'bg-green-500/10 border-green-500/30 shadow-glow' 
+                          : 'bg-gray-800/50 border-gray-700/30'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2">
+                        <div className={`w-2 h-2 rounded-full ${
+                          i < customer.agentsUsed ? 'bg-green-400 animate-pulse' : 'bg-gray-600'
+                        }`}></div>
+                        <span className={`text-sm font-medium ${
+                          i < customer.agentsUsed ? 'text-white' : 'text-gray-500'
+                        }`}>
+                          Agent {i + 1}
+                        </span>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))
+                )}
               </div>
             </CardContent>
           </Card>
@@ -272,10 +336,12 @@ export default function Dashboard() {
                 <div className="text-sm text-gray-400 mb-1">Workspace ID</div>
                 <div className="text-white font-mono text-sm sm:text-base break-all">{customer.workspaceId}</div>
               </div>
-              <Button size="lg" className="whitespace-nowrap">
-                <ZapIcon className="w-5 h-5" />
-                Open Workspace →
-              </Button>
+              <a href={`/workspace/${customer.workspaceId}`}>
+                <Button size="lg" className="whitespace-nowrap w-full sm:w-auto">
+                  <ZapIcon className="w-5 h-5" />
+                  Open Workspace →
+                </Button>
+              </a>
             </div>
           </CardContent>
         </Card>
@@ -294,30 +360,21 @@ export default function Dashboard() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-3">
-                {customer.integrations.map((integration, i) => (
-                  <div 
-                    key={integration.name}
-                    className="flex items-center justify-between p-4 rounded-lg bg-gray-900/50 border border-gray-700/50 hover:border-purple-500/30 transition-all duration-200 animate-fade-in-right"
-                    style={{ animationDelay: `${0.9 + i * 0.1}s` } as React.CSSProperties}
-                  >
-                    <div className="flex items-center gap-3">
-                      <span className="text-2xl">{integration.icon}</span>
-                      <div>
-                        <div className="font-medium text-white">{integration.name}</div>
-                        {integration.lastSync && (
-                          <div className="text-xs text-gray-400">Last sync: {integration.lastSync}</div>
-                        )}
-                      </div>
-                    </div>
-                    {integration.connected ? (
-                      <Badge variant="success" size="sm">Connected</Badge>
-                    ) : (
-                      <Button variant="outline" size="sm">Connect</Button>
-                    )}
-                  </div>
-                ))}
-              </div>
+              {customer.integrations.length > 0 ? (
+                <div className="space-y-3">
+                  {customer.integrations.map((integration, i) => (
+                    <IntegrationItem
+                      key={integration.name}
+                      integration={integration}
+                      animationDelay={0.9 + i * 0.1}
+                      onConnect={handleConnectIntegration}
+                      onDisconnect={handleDisconnectIntegration}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <IntegrationsEmptyState />
+              )}
               <Button variant="ghost" className="w-full mt-4">
                 <LinkIcon className="w-4 h-4" />
                 Browse All Integrations
@@ -340,32 +397,22 @@ export default function Dashboard() {
               {customer.recentActivity.length > 0 ? (
                 <div className="space-y-3">
                   {customer.recentActivity.map((activity, i) => (
-                    <div 
+                    <ActivityItem
                       key={activity.id}
-                      className="flex items-start gap-3 p-3 rounded-lg bg-gray-900/50 border border-gray-700/50 hover:border-purple-500/30 transition-all duration-200 animate-fade-in-left"
-                      style={{ animationDelay: `${1.0 + i * 0.1}s` } as React.CSSProperties}
-                    >
-                      <div className="w-2 h-2 mt-2 rounded-full bg-purple-400 animate-pulse-subtle"></div>
-                      <div className="flex-1">
-                        <p className="text-white text-sm">{activity.description}</p>
-                        <p className="text-xs text-gray-400 mt-1">{activity.timestamp}</p>
-                      </div>
-                    </div>
+                      activity={activity}
+                      animationDelay={1.0 + i * 0.1}
+                    />
                   ))}
                 </div>
               ) : (
-                <EmptyState 
-                  icon={<TrendingUpIcon className="w-16 h-16" />}
-                  title="No activity yet"
-                  description="Your recent workspace activity will appear here"
-                />
+                <ActivityEmptyState />
               )}
             </CardContent>
           </Card>
         </div>
 
         {/* Quick Actions */}
-        <div className="grid sm:grid-cols-3 gap-4 sm:gap-6 mt-8">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mt-8">
           <Card hover className="animate-fade-in-up" style={{ animationDelay: '1.1s' } as React.CSSProperties}>
             <div className="text-center">
               <div className="mx-auto w-12 h-12 mb-3 text-purple-400">
@@ -378,6 +425,21 @@ export default function Dashboard() {
               </Button>
             </div>
           </Card>
+
+          <a href="/dashboard/referrals" className="block">
+            <Card hover className="animate-fade-in-up h-full bg-gradient-to-br from-green-500/10 to-emerald-500/5 border-green-500/20" style={{ animationDelay: '1.15s' } as React.CSSProperties}>
+              <div className="text-center">
+                <div className="mx-auto w-12 h-12 mb-3 text-green-400">
+                  <GiftIcon className="w-12 h-12" />
+                </div>
+                <CardTitle className="mb-2 text-base">Refer & Earn</CardTitle>
+                <CardDescription className="mb-4 text-sm">Get $20 per friend</CardDescription>
+                <Button variant="ghost" size="sm" className="text-green-400">
+                  Start Earning →
+                </Button>
+              </div>
+            </Card>
+          </a>
 
           <Card hover className="animate-fade-in-up" style={{ animationDelay: '1.2s' } as React.CSSProperties}>
             <div className="text-center">
@@ -394,12 +456,12 @@ export default function Dashboard() {
 
           <Card hover className="animate-fade-in-up" style={{ animationDelay: '1.3s' } as React.CSSProperties}>
             <div className="text-center">
-              <div className="mx-auto w-12 h-12 mb-3 text-green-400">
+              <div className="mx-auto w-12 h-12 mb-3 text-yellow-400">
                 <LifeBuoyIcon className="w-12 h-12" />
               </div>
               <CardTitle className="mb-2 text-base">Support</CardTitle>
               <CardDescription className="mb-4 text-sm">Need help?</CardDescription>
-              <Button variant="ghost" size="sm" className="text-green-400">
+              <Button variant="ghost" size="sm" className="text-yellow-400">
                 Contact Us →
               </Button>
             </div>

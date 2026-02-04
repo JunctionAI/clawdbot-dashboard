@@ -24,21 +24,30 @@ export function ActiveSkillsBar({ skills, userSkills, onSkillClick }: ActiveSkil
       <motion.div
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="p-4 bg-gray-800/30 border border-gray-700/50 rounded-xl"
+        className="p-6 bg-gradient-to-br from-gray-800/50 to-gray-900/50 border border-gray-700/50 border-dashed rounded-xl"
       >
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <span className="text-2xl">📦</span>
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-4 text-center sm:text-left">
+            <div className="text-4xl animate-bounce-subtle">✨</div>
             <div>
-              <h3 className="text-white font-semibold">No Active Skills</h3>
-              <p className="text-sm text-gray-400">
-                Enable skills below to supercharge your AI assistant
+              <h3 className="text-white font-semibold text-lg">No Skills Enabled Yet</h3>
+              <p className="text-sm text-gray-400 mt-1">
+                Browse the skills below to unlock powerful AI capabilities
               </p>
             </div>
           </div>
-          <div className="text-right">
-            <p className="text-sm text-gray-500">Skill costs</p>
-            <p className="text-lg font-bold text-white">$0/mo</p>
+          <div className="flex items-center gap-4">
+            <div className="text-right">
+              <p className="text-xs text-gray-500 uppercase tracking-wide">Monthly cost</p>
+              <p className="text-2xl font-bold text-green-400">$0</p>
+            </div>
+            <div className="hidden sm:block w-px h-10 bg-gray-700" />
+            <div className="hidden sm:flex flex-col items-center">
+              <svg className="w-6 h-6 text-gray-500 animate-bounce" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+              </svg>
+              <span className="text-xs text-gray-500 mt-1">Browse</span>
+            </div>
           </div>
         </div>
       </motion.div>

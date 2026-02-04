@@ -24,12 +24,11 @@ const ALLOWED_PRICE_IDS = new Set([
   // Legacy env vars for backwards compatibility
   process.env.STRIPE_PRICE_STARTER,
   process.env.STRIPE_PRICE_ENTERPRISE,
-  // Fallback hardcoded IDs if env vars not set (fail-safe)
-  'price_personal',                   // Personal $9/mo
-  'price_1SwtCbBfSldKMuDjM3p0kyG4',  // Plus $19/mo (was Starter)
-  'price_1SwtCbBfSldKMuDjDmRHqErh',  // Pro $39/mo
-  'price_family',                     // Family $19/mo
-  'price_1SwtCcBfSldKMuDjEKBqQ6lH',  // Team $29/seat/mo
+  // Ally Pricing (Feb 2026) - hardcoded as fail-safe
+  'price_1Sx1rhBfSldKMuDj23HEtKwS',  // Personal $9/mo
+  'price_1Sx1riBfSldKMuDjVcuXZHfE',  // Plus $19/mo
+  'price_1Sx1rjBfSldKMuDjgYJJBBK9',  // Pro $39/mo
+  'price_1Sx1rjBfSldKMuDjz6W740TQ',  // Family $19/mo
 ].filter(Boolean));
 
 // Rate limit check (simple in-memory)
