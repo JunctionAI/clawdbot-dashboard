@@ -11,11 +11,12 @@ interface StatCardProps {
   };
   description?: string;
   className?: string;
+  style?: React.CSSProperties;
 }
 
-export function StatCard({ icon, label, value, change, description, className = '' }: StatCardProps) {
+export function StatCard({ icon, label, value, change, description, className = '', style }: StatCardProps) {
   return (
-    <Card className={`animate-fade-in-up ${className}`} hover>
+    <Card className={`animate-fade-in-up ${className}`} hover style={style}>
       <div className="flex items-start justify-between">
         <div className="flex-1">
           <p className="text-gray-400 text-sm font-medium mb-1">{label}</p>

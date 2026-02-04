@@ -1,3 +1,5 @@
+'use client';
+
 import React from 'react';
 import { Button } from './Button';
 
@@ -50,6 +52,11 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
 
   static getDerivedStateFromError(error: Error) {
     return { hasError: true, error };
+  }
+
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+    // Log error to monitoring service in production
+    console.error('ErrorBoundary caught error:', error, errorInfo);
   }
 
   render() {

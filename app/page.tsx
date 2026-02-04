@@ -994,10 +994,10 @@ const FeaturesSection = () => {
 // ----------------------------------------------------------------------------
 const StatsSection = () => {
   const stats = [
-    { value: 45, suffix: 's', label: 'Setup Time' },
-    { value: 99.9, suffix: '%', label: 'Uptime SLA' },
-    { value: 10, suffix: 'x', label: 'Faster Than ChatGPT' },
-    { value: 14, suffix: ' days', label: 'Free Trial' },
+    { value: 45, prefix: '', suffix: 's', label: 'Setup Time' },
+    { value: 99.9, prefix: '', suffix: '%', label: 'Uptime SLA' },
+    { value: 10, prefix: '', suffix: 'x', label: 'Faster Than ChatGPT' },
+    { value: 14, prefix: '', suffix: ' days', label: 'Free Trial' },
   ];
   
   return (
