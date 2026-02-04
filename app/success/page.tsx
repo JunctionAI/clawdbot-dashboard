@@ -1,9 +1,9 @@
 'use client';
 
 import { useSearchParams } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 
-export default function Success() {
+function SuccessContent() {
   const searchParams = useSearchParams();
   const sessionId = searchParams.get('session_id');
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
@@ -78,7 +78,7 @@ export default function Success() {
             <p className="text-gray-400 mb-6">
               We couldn't set up your workspace. Please contact support.
             </p>
-            <a 
+            <a
               href="mailto:support@setupclaw.com"
               className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg font-semibold inline-block transition"
             >
@@ -88,5 +88,17 @@ export default function Success() {
         )}
       </div>
     </main>
+  );
+}
+
+export default function Success() {
+  return (
+    <Suspense fallback={
+      <main className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 flex items-center justify-center px-4">
+        <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-purple-500"></div>
+      </main>
+    }>
+      <SuccessContent />
+    </Suspense>
   );
 }
