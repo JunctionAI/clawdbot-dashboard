@@ -443,10 +443,7 @@ const TestimonialCard = ({ testimonial, author, role, company, avatar, delay }: 
             </div>
             
             <p className="text-white/90 text-lg leading-relaxed mb-6 min-h-[120px]">
-              "{displayedText}"
-              {displayedText.length < testimonial.length && (
-                <span className="inline-block w-0.5 h-5 bg-violet-400 ml-1 animate-pulse" />
-              )}
+              "{testimonial}"
             </p>
             
             <div className="flex items-center gap-4">
@@ -1065,23 +1062,23 @@ const StatsSection = () => {
 const TestimonialsSection = () => {
   const testimonials = [
     {
-      testimonial: "Clawdbot completely transformed how we build products. We shipped 3x faster and our conversion rates went through the roof. Absolutely game-changing.",
+      testimonial: "I was drowning in 200+ emails a day. Clawdbot now triages everything, drafts responses, and I only touch what matters. Saved me 2+ hours daily.",
       author: "Sarah Chen",
-      role: "CTO",
+      role: "Founder",
       company: "TechFlow",
       avatar: "SC",
     },
     {
-      testimonial: "The best platform we've ever used. Period. Our team productivity increased by 200% in the first month. I can't imagine going back.",
+      testimonial: "Unlike ChatGPT, Clawdbot actually remembers our projects, our clients, our preferences. It's like having a chief of staff who never forgets.",
       author: "Marcus Rodriguez",
-      role: "VP Engineering",
+      role: "CEO",
       company: "ScaleUp",
       avatar: "MR",
     },
     {
-      testimonial: "We evaluated 20+ tools before choosing Clawdbot. Nothing else comes close. The ROI was visible within the first week of implementation.",
+      testimonial: "Set it up in literally 2 minutes. No servers, no config. It was scheduling meetings and summarizing docs within an hour. Mind-blowing.",
       author: "Emily Watson",
-      role: "Head of Product",
+      role: "Head of Ops",
       company: "GrowthLabs",
       avatar: "EW",
     },
@@ -1362,7 +1359,7 @@ const Footer = () => {
         {/* Bottom */}
         <div className="pt-8 border-t border-white/10 flex flex-col md:flex-row items-center justify-between gap-4">
           <p className="text-white/40 text-sm">
-            © 2024 Clawdbot, Inc. All rights reserved.
+            © 2026 Clawdbot, Inc. All rights reserved.
           </p>
           <div className="flex items-center gap-6">
             <a href="#" className="text-white/40 hover:text-white/60 text-sm transition-colors">
