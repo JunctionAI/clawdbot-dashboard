@@ -34,7 +34,7 @@ export default function ChatPage() {
       return {
         id: data.messageId || `msg_${Date.now()}`,
         content: data.reply,
-        role: 'assistant',
+        role: 'ally',
         timestamp: new Date()
       };
     } catch (error) {
@@ -42,7 +42,7 @@ export default function ChatPage() {
       return {
         id: `err_${Date.now()}`,
         content: "Sorry, I couldn't connect. Please try again.",
-        role: 'assistant',
+        role: 'ally',
         timestamp: new Date()
       };
     }

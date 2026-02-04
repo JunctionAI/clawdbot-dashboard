@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getToken } from 'next-auth/jwt';
 
 /**
  * Next.js Middleware
@@ -28,7 +29,6 @@ function rateLimit(ip: string): { allowed: boolean; remaining: number } {
 }
 
 // Security headers
-// SEC-010: Strengthened CSP with additional directives
 const securityHeaders = {
   'X-DNS-Prefetch-Control': 'on',
   'X-Frame-Options': 'DENY',
@@ -38,28 +38,29 @@ const securityHeaders = {
   'Permissions-Policy': 'camera=(), microphone=(), geolocation=(), payment=(self)',
   'Content-Security-Policy': [
     "default-src 'self'",
-    "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com",
-    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+    "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com https://accounts.google.com",
+    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://accounts.google.com",
     "font-src 'self' https://fonts.gstatic.com",
     "img-src 'self' data: https: blob:",
-    "connect-src 'self' https://api.stripe.com wss: ws:",
-    "frame-src 'self' https://js.stripe.com",
-    "form-action 'self'",  // SEC-010: Prevent form hijacking
-    "base-uri 'self'",     // SEC-010: Prevent base tag injection
-    "object-src 'none'",   // SEC-010: Block plugins
-    "upgrade-insecure-requests", // SEC-010: Force HTTPS
+    "connect-src 'self' https://api.stripe.com https://accounts.google.com wss: ws:",
+    "frame-src 'self' https://js.stripe.com https://accounts.google.com",
+    "form-action 'self' https://accounts.google.com",
+    "base-uri 'self'",
+    "object-src 'none'",
+    "upgrade-insecure-requests",
   ].join('; '),
-  // HSTS - enable after confirming HTTPS works
-  // 'Strict-Transport-Security': 'max-age=31536000; includeSubDomains',
 };
 
-// Routes that require authentication
-const protectedRoutes = ['/dashboard', '/workspace', '/settings'];
+// Routes that require authentication (redirect to /setup if not logged in)
+const protectedRoutes = ['/dashboard', '/chat', '/workspace', '/settings'];
 
-// Routes that should redirect if authenticated
-const authRoutes = ['/login', '/signup'];
+// Routes that should redirect to dashboard if already authenticated
+const authRoutes = ['/setup'];
 
-export function middleware(request: NextRequest) {
+// Public routes that never require auth
+const publicRoutes = ['/', '/demo', '/checkout', '/success', '/skills', '/r'];
+
+export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const ip = request.ip ?? request.headers.get('x-forwarded-for')?.split(',')[0] ?? 'unknown';
 
@@ -67,13 +68,14 @@ export function middleware(request: NextRequest) {
   if (
     pathname.startsWith('/_next') ||
     pathname.startsWith('/static') ||
+    pathname.startsWith('/api/auth') || // Let NextAuth handle its own routes
     pathname.includes('.')
   ) {
     return NextResponse.next();
   }
 
-  // Rate limiting for API routes
-  if (pathname.startsWith('/api')) {
+  // Rate limiting for API routes (except auth)
+  if (pathname.startsWith('/api') && !pathname.startsWith('/api/auth')) {
     const { allowed, remaining } = rateLimit(ip);
 
     if (!allowed) {
@@ -98,6 +100,28 @@ export function middleware(request: NextRequest) {
     response.headers.set('X-RateLimit-Limit', String(RATE_LIMIT_MAX));
     response.headers.set('X-RateLimit-Remaining', String(remaining));
     return response;
+  }
+
+  // Check authentication for protected routes
+  const token = await getToken({ 
+    req: request, 
+    secret: process.env.NEXTAUTH_SECRET 
+  });
+
+  const isAuthenticated = !!token;
+  const isProtectedRoute = protectedRoutes.some(route => pathname.startsWith(route));
+  const isAuthRoute = authRoutes.some(route => pathname.startsWith(route));
+
+  // Redirect unauthenticated users from protected routes to /setup
+  if (isProtectedRoute && !isAuthenticated) {
+    const url = new URL('/setup', request.url);
+    url.searchParams.set('callbackUrl', pathname);
+    return NextResponse.redirect(url);
+  }
+
+  // Redirect authenticated users from auth routes to /dashboard
+  if (isAuthRoute && isAuthenticated) {
+    return NextResponse.redirect(new URL('/dashboard', request.url));
   }
 
   // Create response

@@ -5,6 +5,7 @@ import { ToastProvider } from '@/components/ui/Toast';
 import { ErrorBoundary } from '@/components/ui/ErrorState';
 import { NotificationProvider } from '@/lib/notifications/context';
 import { ToastContainer } from '@/components/notifications/ToastContainer';
+import { AuthProvider } from '@/lib/auth/provider';
 
 interface ProvidersProps {
   children: React.ReactNode;
@@ -26,9 +27,10 @@ export function Providers({ children }: ProvidersProps) {
   }, []);
 
   return (
-    <ToastProvider>
-      <NotificationProvider>
-        <ErrorBoundary
+    <AuthProvider>
+      <ToastProvider>
+        <NotificationProvider>
+          <ErrorBoundary
           fallback={
             <div className="min-h-screen bg-gray-900 flex items-center justify-center p-4">
               <div className="text-center">
@@ -51,8 +53,9 @@ export function Providers({ children }: ProvidersProps) {
         >
           {children}
           <ToastContainer />
-        </ErrorBoundary>
-      </NotificationProvider>
-    </ToastProvider>
+          </ErrorBoundary>
+        </NotificationProvider>
+      </ToastProvider>
+    </AuthProvider>
   );
 }
