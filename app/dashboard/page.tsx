@@ -55,9 +55,12 @@ export default function Dashboard() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Simulate API call with realistic data
-    setTimeout(() => {
+    // BUG-004 fix: Store timeout ID for cleanup
+    const timeoutId = setTimeout(() => {
       try {
+        // TODO: BUG-005 - Replace with actual API call
+        // const response = await fetch('/api/customer');
+        // const data = await response.json();
         setCustomer({
           email: 'user@example.com',
           plan: 'Pro',
@@ -85,6 +88,9 @@ export default function Dashboard() {
         setLoading(false);
       }
     }, 1200);
+    
+    // Cleanup timeout on unmount
+    return () => clearTimeout(timeoutId);
   }, []);
 
   if (loading) {

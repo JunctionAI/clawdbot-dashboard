@@ -98,13 +98,28 @@ const ParticleField = () => {
     createParticles();
     animate();
     
-    window.addEventListener('resize', () => {
+    // BUG-001 fix: Store resize handler reference for cleanup
+    const handleResize = () => {
       resize();
       createParticles();
-    });
+    };
+    
+    // PERF-001 fix: Pause animation when tab is hidden
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        cancelAnimationFrame(animationId);
+      } else {
+        animate();
+      }
+    };
+    
+    window.addEventListener('resize', handleResize);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
     
     return () => {
       cancelAnimationFrame(animationId);
+      window.removeEventListener('resize', handleResize);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
   }, []);
   
@@ -199,22 +214,33 @@ const GradientText = ({ children, className = '' }: { children: React.ReactNode;
 };
 
 // ----------------------------------------------------------------------------
-// Typing Animation Hook
+// Typing Animation Hook (BUG-003 fix: proper timeout cleanup)
 // ----------------------------------------------------------------------------
 const useTypingAnimation = (texts: string[], typingSpeed = 50, deletingSpeed = 30, pauseDuration = 2000) => {
   const [displayText, setDisplayText] = useState('');
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
   
   useEffect(() => {
     const currentText = texts[currentIndex];
+    
+    // Handle pause state separately
+    if (isPaused) {
+      const pauseTimeout = setTimeout(() => {
+        setIsPaused(false);
+        setIsDeleting(true);
+      }, pauseDuration);
+      return () => clearTimeout(pauseTimeout);
+    }
     
     const timeout = setTimeout(() => {
       if (!isDeleting) {
         if (displayText.length < currentText.length) {
           setDisplayText(currentText.slice(0, displayText.length + 1));
         } else {
-          setTimeout(() => setIsDeleting(true), pauseDuration);
+          // Set pause state instead of nested setTimeout
+          setIsPaused(true);
         }
       } else {
         if (displayText.length > 0) {
@@ -227,7 +253,7 @@ const useTypingAnimation = (texts: string[], typingSpeed = 50, deletingSpeed = 3
     }, isDeleting ? deletingSpeed : typingSpeed);
     
     return () => clearTimeout(timeout);
-  }, [displayText, currentIndex, isDeleting, texts, typingSpeed, deletingSpeed, pauseDuration]);
+  }, [displayText, currentIndex, isDeleting, isPaused, texts, typingSpeed, deletingSpeed, pauseDuration]);
   
   return displayText;
 };
